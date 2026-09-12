@@ -1,0 +1,83 @@
+test/camera_provider_test.dart
+  s_041bfbea644396::t_decf096d285b37 1-39
+macos/Runner/DebugProfile.entitlements
+  s_041bfbea644396::t_9c8eb6fb5c4ca5 13-16
+lib/ui/widgets/prompter_camera_controls.dart
+  s_041bfbea644396::t_cf329d23924d84 1-145,160-276
+  s_041bfbea644396::t_a7335a6e3a7ae8 146-159
+macos/Runner/Info.plist
+  s_041bfbea644396::t_a997a7d349a9e7 33-38
+windows/flutter/generated_plugin_registrant.cc
+  s_041bfbea644396::t_47f86627f18aa5 10,16-17
+windows/flutter/generated_plugins.cmake
+  s_041bfbea644396::t_47f86627f18aa5 7
+lib/providers/camera_provider.dart
+  s_041bfbea644396::t_9c86815793cfeb 3,24,39,55-56,73
+  s_041bfbea644396::t_6befc13ba1af3e 306-346
+  s_041bfbea644396::t_9644cc326f74e9 1-2,4-23,25-38,40-54,57-72,74-305,347-358
+lib/ui/widgets/prompter_bottom_bar.dart
+  s_041bfbea644396::t_fa8c722149af84 9,12,15
+  s_041bfbea644396::t_599a76e9b1e91c 111-142,154-155
+  s_041bfbea644396::t_8061b7d042df10 143-153
+  s_041bfbea644396::t_efd96d74fb323e 110
+lib/ui/screens/prompter_screen.dart
+  s_041bfbea644396::t_16c6e7975e0e7a 225-226
+  s_041bfbea644396::t_195f1539af6103 14-16,20-21,26
+  s_041bfbea644396::t_41d260e33fa2e3 101-141,156-158,204-210
+  s_041bfbea644396::t_93853eb37b016e 62-63
+assets/translations/en-US.json
+  s_041bfbea644396::t_eb89900ccf80cb 200
+  s_041bfbea644396::t_66bbca23339001 193-199,201-208
+lib/ui/widgets/recorded_video_dialog.dart
+  s_041bfbea644396::t_f8c94c13abe85d 65-69
+  s_041bfbea644396::t_3c8d8c0ca4f63f 1-64,70-76
+lib/core/constants.dart
+  s_041bfbea644396::t_ef53b24a7c926a 57
+assets/translations/fr-FR.json
+  s_041bfbea644396::t_80554d88a9e991 1-195,197-267
+  s_041bfbea644396::t_8d498ab35baeea 196
+android/app/src/main/AndroidManifest.xml
+  s_041bfbea644396::t_8c64a30819ac74 2-12
+  s_041bfbea644396::t_e7147a050fd2ec 52-53
+  s_041bfbea644396::t_9833e771a88490 51
+pubspec.yaml
+  s_041bfbea644396::t_06585f9a556421 56-57
+  s_041bfbea644396::t_47f86627f18aa5 58
+  s_041bfbea644396::t_fe475234c2b8fd 59-60
+lib/ui/widgets/prompter_camera_preview.dart
+  s_041bfbea644396::t_4f8c2d234379e6 1-24,32-40,43-88,97-132,135-170
+  s_041bfbea644396::t_e356c4c9358d4b 89-96,133-134
+  s_041bfbea644396::t_580361e8a3bb48 25-31,41-42
+test/voice_scroll_provider_test.dart
+  s_041bfbea644396::t_70619ba6d032e8 1-41
+macos/Flutter/GeneratedPluginRegistrant.swift
+  s_041bfbea644396::t_d1110ca4d32a07 9,19
+  s_041bfbea644396::t_47f86627f18aa5 13,23
+lib/providers/voice_scroll_provider.dart
+  s_041bfbea644396::t_108049763163fd 1-91,97-134,140-280
+  s_041bfbea644396::t_4f4374db51d8d2 92-96,135-139
+ios/Runner/Info.plist
+  s_041bfbea644396::t_4e006a3c43a480 31-36
+macos/Runner/Release.entitlements
+  s_041bfbea644396::t_623382b11b0bbd 9-12
+lib/ui/widgets/voice_scroll_banner.dart
+  s_041bfbea644396::t_27afabfb5d71bf 1-64
+pubspec.lock
+  s_041bfbea644396::t_c5749e9007469c 116-155,562-593,952,955,958,963,966,1100-1123
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "development:1.7.1",
+  "base_commit_sha": "fa20992eb06d2f28b5c6fd855cb14fde100a7e3b",
+  "prompts": {},
+  "sessions": {
+    "s_041bfbea644396": {
+      "agent_id": {
+        "tool": "antigravity",
+        "id": "56031123-fbf6-4e70-9210-f563471e2e3b",
+        "model": "gemini-3.8-flash-high"
+      },
+      "human_author": "Guiraud <mehdi.guiraud@gmail.com>"
+    }
+  }
+}
