@@ -1,0 +1,32 @@
+lib/providers/voice_scroll_provider.dart
+  s_041bfbea644396::t_4f00d070471435 24-28,76,81,86-98
+  s_041bfbea644396::t_f7a246743a1cb8 5-23,29-75,77-80,82-85,99-228,233,236-237,247-248,259-260,271-272,280-281,283-288,294-295,310-315,330-341,353,364,369-371,374,379-380,383,387-388,392-394,404,410,416,418,421-423,427,429-436,440,442-446,448-451,453-464,469-470,478-481,497
+test/voice_scroll_provider_test.dart
+  s_041bfbea644396::t_76fe2a79d76c38 14-15,35-36,43-147
+lib/providers/session_launch_provider.dart
+  s_041bfbea644396::t_93a49e53c020c2 18
+lib/ui/widgets/voice_scroll_banner.dart
+  s_041bfbea644396::t_7dcf4181aa987a 36-40,43-76
+pubspec.yaml
+  s_041bfbea644396::t_d045f7188d0617 19
+lib/ui/widgets/scrollable_text.dart
+  s_041bfbea644396::t_cb487eb5b8db0b 70,72-75,77-85
+  s_041bfbea644396::t_88d3778c68e6a5 7
+  s_041bfbea644396::t_a0deb173cba08e 182-197,201-245,247-255,275-282,288
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "development:1.7.1",
+  "base_commit_sha": "9c790291d0b06fa5d608debe45c15585c5ae1cb3",
+  "prompts": {},
+  "sessions": {
+    "s_041bfbea644396": {
+      "agent_id": {
+        "tool": "antigravity",
+        "id": "56031123-fbf6-4e70-9210-f563471e2e3b",
+        "model": "gemini-3.8-flash-high"
+      },
+      "human_author": "Guiraud <mehdi.guiraud@gmail.com>"
+    }
+  }
+}
