@@ -6,10 +6,13 @@ import 'package:go_router/go_router.dart';
 import 'package:tiefprompt/core/constants.dart';
 import 'package:tiefprompt/core/control_buttons.dart';
 import 'package:tiefprompt/core/disabled_feature_screen_state.dart';
+import 'package:tiefprompt/providers/camera_provider.dart';
 import 'package:tiefprompt/providers/feature_provider.dart';
 import 'package:tiefprompt/providers/prompter_provider.dart';
+import 'package:tiefprompt/providers/script_provider.dart';
 import 'package:tiefprompt/providers/settings_provider.dart';
 import 'package:tiefprompt/providers/theme_provider.dart';
+import 'package:tiefprompt/providers/voice_scroll_provider.dart';
 import 'package:tiefprompt/ui/screens/reset_settings_screen.dart';
 
 class _BoolToggle extends Notifier<bool> {
@@ -101,6 +104,52 @@ class PrompterBottomBar extends ConsumerWidget {
             tooltip: context.tr("PrompterScreen.IconButton_TextFormat"),
             onPressed: () =>
                 ref.read(fontSettingsVisibleProvider.notifier).toggle(),
+          ),
+        ],
+      ),
+      _ButtonGroup(
+        children: [
+          IconButton(
+            icon: Icon(
+              ref.watch(cameraProvider).isEnabled
+                  ? Icons.videocam
+                  : Icons.videocam_outlined,
+              color: ref.watch(cameraProvider).isEnabled
+                  ? Theme.of(context).colorScheme.primary
+                  : null,
+            ),
+            tooltip: context.tr("PrompterScreen.IconButton_Camera"),
+            onPressed: () {
+              ref.read(cameraProvider.notifier).toggleCamera();
+            },
+          ),
+          IconButton(
+            icon: Icon(
+              ref.watch(voiceScrollProvider).isListening
+                  ? Icons.mic
+                  : Icons.mic_none,
+              color: ref.watch(voiceScrollProvider).isListening
+                  ? Colors.tealAccent
+                  : null,
+            ),
+            tooltip: context.tr("PrompterScreen.IconButton_VoiceScroll"),
+            onPressed: () {
+              final script = ref.read(scriptProvider);
+              ref
+                  .read(voiceScrollProvider.notifier)
+                  .toggleVoiceScroll(script.text);
+            },
+          ),
+          IconButton(
+            icon: Icon(
+              MediaQuery.of(context).orientation == Orientation.portrait
+                  ? Icons.stay_current_portrait
+                  : Icons.stay_current_landscape,
+            ),
+            tooltip: context.tr("PrompterScreen.Camera_Orientation"),
+            onPressed: () {
+              ref.read(cameraProvider.notifier).toggleOrientation();
+            },
           ),
         ],
       ),

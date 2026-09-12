@@ -28,6 +28,12 @@
 	<true/>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app may indirectly access your photo library via included SDKs.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Enregistrez une vidéo et voyez-vous pendant le défilement du prompteur.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Enregistrez votre voix et activez le défilement guidé par la parole.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Permet au texte de défiler automatiquement en suivant votre voix.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

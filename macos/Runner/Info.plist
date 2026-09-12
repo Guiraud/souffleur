@@ -30,5 +30,11 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Enregistrez une vidéo et voyez-vous pendant le défilement du prompteur.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Enregistrez votre voix et activez le défilement guidé par la parole.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Permet au texte de défiler automatiquement en suivant votre voix.</string>
 </dict>
 </plist>

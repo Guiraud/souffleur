@@ -11,14 +11,19 @@ import 'package:tiefprompt/providers/keybinding_provider.dart';
 import 'package:tiefprompt/providers/prompter_provider.dart';
 import 'package:tiefprompt/providers/settings_provider.dart';
 import 'package:tiefprompt/services/script_service.dart';
+import 'package:tiefprompt/providers/camera_provider.dart';
+import 'package:tiefprompt/providers/script_provider.dart';
+import 'package:tiefprompt/providers/voice_scroll_provider.dart';
 import 'package:tiefprompt/ui/widgets/countdown_timer.dart';
 import 'package:tiefprompt/ui/widgets/current_chapter_banner.dart';
 import 'package:tiefprompt/ui/widgets/prompter_bottom_bar.dart';
+import 'package:tiefprompt/ui/widgets/prompter_camera_controls.dart';
+import 'package:tiefprompt/ui/widgets/prompter_camera_preview.dart';
 import 'package:tiefprompt/ui/widgets/prompter_control_buttons_overlay.dart';
 import 'package:tiefprompt/ui/widgets/prompter_top_bar.dart';
 import 'package:tiefprompt/ui/widgets/vertical_margin.dart';
 import 'package:tiefprompt/ui/widgets/scrollable_text.dart';
-import 'package:tiefprompt/providers/script_provider.dart';
+import 'package:tiefprompt/ui/widgets/voice_scroll_banner.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 class _ControlsVisible extends Notifier<bool> {
@@ -54,6 +59,8 @@ class _PrompterScreenState extends ConsumerState<PrompterScreen> {
     WakelockPlus.enable();
 
     SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ]);
@@ -91,6 +98,47 @@ class _PrompterScreenState extends ConsumerState<PrompterScreen> {
       ),
     );
 
+    final cameraState = ref.watch(cameraProvider);
+    final voiceScrollState = ref.watch(voiceScrollProvider);
+
+    ref.listen(voiceScrollProvider, (previous, next) {
+      if (next.isListening &&
+          next.scrollProgress != previous?.scrollProgress &&
+          _scrollableTextController.scrollController.hasClients) {
+        final maxScroll = _scrollableTextController
+            .scrollController.position.maxScrollExtent;
+        final target = maxScroll * next.scrollProgress;
+        _scrollableTextController.scrollController.animateTo(
+          target,
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeOut,
+        );
+      }
+      if (next.errorMessage != null &&
+          next.errorMessage != previous?.errorMessage) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(next.errorMessage!),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+        ref.read(voiceScrollProvider.notifier).clearError();
+      }
+    });
+
+    ref.listen(cameraProvider, (previous, next) {
+      if (next.errorMessage != null &&
+          next.errorMessage != previous?.errorMessage) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(next.errorMessage!),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+        ref.read(cameraProvider.notifier).clearError();
+      }
+    });
+
     return KeyboardListener(
       onKeyEvent: (keyEvent) {
         if (keyEvent is KeyDownEvent) {
@@ -105,6 +153,9 @@ class _PrompterScreenState extends ConsumerState<PrompterScreen> {
         body: Stack(
           fit: StackFit.expand,
           children: [
+            if (cameraState.isEnabled &&
+                cameraState.previewMode == CameraPreviewMode.background)
+              const PrompterCameraBackgroundPreview(),
             GestureDetector(
               onTap: () {
                 ref.read(controlsVisibleProvider.notifier).toggle();
@@ -150,6 +201,13 @@ class _PrompterScreenState extends ConsumerState<PrompterScreen> {
                             ControlButtonsPosition.right)) &&
                 prompterConfig.showControlButtons)
               PrompterControlButtonsOverlay(),
+            if (cameraState.isEnabled &&
+                cameraState.previewMode == CameraPreviewMode.floating)
+              const PrompterCameraFloatingPreview(),
+            if (cameraState.isEnabled)
+              const PrompterCameraControlsOverlay(),
+            if (voiceScrollState.isListening)
+              const VoiceScrollBanner(),
             if (ref.watch(controlsVisibleProvider)) PrompterTopBar(),
             if (ref.watch(controlsVisibleProvider)) PrompterBottomBar(),
             if (displayCountdown && prompterConfig.countdownDuration > 0)
@@ -164,6 +222,8 @@ class _PrompterScreenState extends ConsumerState<PrompterScreen> {
 
   @override
   void dispose() {
+    ref.read(cameraProvider.notifier).disableCamera();
+    ref.read(voiceScrollProvider.notifier).stopListening();
     SystemChrome.setPreferredOrientations([]);
     SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.manual,

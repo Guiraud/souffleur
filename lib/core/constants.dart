@@ -54,6 +54,7 @@ const List<String> kAvailableFonts = [
 
 const kSupportedLocales = [
   ("English", Locale("en", "US")),
+  ("Français", Locale("fr", "FR")),
   ("简体中文", Locale("zh", "CN")),
   ("Deutsch", Locale("de", "DE")),
   ("Pirate English", ExtendedLocale("en", "pirate")),
