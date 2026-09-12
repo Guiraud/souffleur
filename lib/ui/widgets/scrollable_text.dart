@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tief_weave/markdown.dart';
 import 'package:tiefprompt/providers/current_chapter_provider.dart';
 import 'package:tiefprompt/providers/prompter_provider.dart';
+import 'package:tiefprompt/providers/voice_scroll_provider.dart';
 
 class _UserScrolling extends Notifier<bool> {
   @override
@@ -66,12 +67,22 @@ class _ScrollableTextState extends ConsumerState<ScrollableText>
       MarkdownRendererController();
   List<({String title, double offset})> _chapterOffsets = [];
   double _topPadding = 0;
+  double _mediaHeight = 0;
 
-  void _startScrolling(double speed) {
-    _stopScrolling();
+  void _checkScrollingState() {
+    final isPlaying = ref.read(prompterProvider).isPlaying;
+    final isVoiceListening = ref.read(voiceScrollProvider).isListening;
+    final speed = ref.read(prompterProvider).config.scrollSpeed;
     _scrollSpeed = speed;
-    _lastElapsed = Duration.zero;
-    _ticker?.start();
+
+    if (isPlaying || isVoiceListening) {
+      if (!(_ticker?.isActive ?? false)) {
+        _lastElapsed = Duration.zero;
+        _ticker?.start();
+      }
+    } else {
+      _stopScrolling();
+    }
   }
 
   void _stopScrolling() {
@@ -163,27 +174,85 @@ class _ScrollableTextState extends ConsumerState<ScrollableText>
   }
 
   void _tick(Duration elapsed) {
-    final isUserScrolling = ref.read(_userScrollingProvider);
-
     final deltaSeconds =
         (elapsed - _lastElapsed).inMicroseconds /
         Duration.microsecondsPerSecond;
     _lastElapsed = elapsed;
 
+    if (deltaSeconds <= 0 || deltaSeconds > 0.5) return;
+
+    final isUserScrolling = ref.read(_userScrollingProvider);
+    if (!widget.controller.scrollController.hasClients || isUserScrolling) {
+      return;
+    }
+
+    final voiceState = ref.read(voiceScrollProvider);
+    if (voiceState.isListening) {
+      _tickVoiceScroll(deltaSeconds, voiceState);
+    } else if (ref.read(prompterProvider).isPlaying) {
+      _tickManualScroll(deltaSeconds);
+    }
+  }
+
+  void _tickManualScroll(double deltaSeconds) {
     final calculatedScrollOffset =
         _getScrollOffsetInLinesPerSecond(_scrollSpeed) * deltaSeconds;
 
-    if (widget.controller.scrollController.hasClients && !isUserScrolling) {
-      if (widget.controller.scrollController.position.pixels +
-              calculatedScrollOffset >=
-          widget.controller.scrollController.position.maxScrollExtent) {
-        _onReachedEnd?.call();
-        return;
+    final controller = widget.controller.scrollController;
+    if (controller.position.pixels + calculatedScrollOffset >=
+        controller.position.maxScrollExtent) {
+      _onReachedEnd?.call();
+      return;
+    }
+    controller.jumpTo(controller.position.pixels + calculatedScrollOffset);
+  }
+
+  void _tickVoiceScroll(double deltaSeconds, VoiceScrollState voiceState) {
+    final controller = widget.controller.scrollController;
+    final maxScroll = controller.position.maxScrollExtent;
+    final mediaH = _mediaHeight > 0 ? _mediaHeight : 800.0;
+    final textHeight = (maxScroll - mediaH).clamp(0.0, double.infinity);
+
+    // Reading eye-line is at 40% from top of screen (comfortable reading height near camera)
+    final readingY = mediaH * 0.40;
+    final startScroll = mediaH - readingY;
+    final targetPixels =
+        (startScroll + voiceState.scrollProgress * textHeight).clamp(0.0, maxScroll);
+    final currentPixels = controller.position.pixels;
+    final distance = targetPixels - currentPixels;
+
+    if (currentPixels >= maxScroll && targetPixels >= maxScroll - 10) {
+      _onReachedEnd?.call();
+      return;
+    }
+
+    if (voiceState.isSpeaking) {
+      if (distance > 0) {
+        // Target is ahead: scale speed dynamically with distance
+        // The faster the user speaks, the further ahead target moves, and the faster it rolls!
+        final catchUpSpeed = (distance * 3.5).clamp(35.0, 850.0);
+        final advance = (catchUpSpeed * deltaSeconds).clamp(0.0, distance);
+        controller.jumpTo(currentPixels + advance);
+      } else if (distance > -25.0) {
+        // Aligned with target: keep rolling smoothly forward at baseline speaking rate
+        final baselineSpeed = _getScrollOffsetInLinesPerSecond(1.2);
+        final advance = baselineSpeed * deltaSeconds;
+        controller.jumpTo((currentPixels + advance).clamp(0.0, targetPixels + 40.0));
+      } else if (distance < -50.0) {
+        // User skipped backwards in text: smoothly glide backwards to match
+        final backSpeed = (distance * 3.5).clamp(-850.0, -35.0);
+        final advance = (backSpeed * deltaSeconds).clamp(distance, 0.0);
+        controller.jumpTo(currentPixels + advance);
       }
-      widget.controller.scrollController.jumpTo(
-        widget.controller.scrollController.position.pixels +
-            calculatedScrollOffset,
-      );
+    } else {
+      // User paused speaking (silence > 1.5s)
+      if (distance > 2.0) {
+        // Smoothly settle to the target word
+        final settleSpeed = (distance * 2.5).clamp(15.0, 250.0);
+        final advance = (settleSpeed * deltaSeconds).clamp(0.0, distance);
+        controller.jumpTo(currentPixels + advance);
+      }
+      // When distance <= 2.0, completely paused!
     }
   }
 
@@ -203,16 +272,20 @@ class _ScrollableTextState extends ConsumerState<ScrollableText>
         (p) => (isPlaying: p.isPlaying, speed: p.config.scrollSpeed),
       ),
       (previous, next) {
-        if (next.isPlaying) {
-          _startScrolling(next.speed);
-        } else {
-          _stopScrolling();
-        }
+        _checkScrollingState();
+      },
+    );
+
+    ref.listen(
+      voiceScrollProvider.select((v) => v.isListening),
+      (previous, next) {
+        _checkScrollingState();
       },
     );
 
     final mediaHeight = MediaQuery.of(context).size.height;
     final mediaWidth = MediaQuery.of(context).size.width;
+    _mediaHeight = mediaHeight;
     final renderWidth = mediaWidth - widget.sideMargin * 2;
     _topPadding = mediaHeight;
 

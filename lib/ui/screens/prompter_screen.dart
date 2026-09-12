@@ -110,18 +110,6 @@ class _PrompterScreenState extends ConsumerState<PrompterScreen> {
     final voiceScrollState = ref.watch(voiceScrollProvider);
 
     ref.listen(voiceScrollProvider, (previous, next) {
-      if (next.isListening &&
-          next.scrollProgress != previous?.scrollProgress &&
-          _scrollableTextController.scrollController.hasClients) {
-        final maxScroll = _scrollableTextController
-            .scrollController.position.maxScrollExtent;
-        final target = maxScroll * next.scrollProgress;
-        _scrollableTextController.scrollController.animateTo(
-          target,
-          duration: const Duration(milliseconds: 350),
-          curve: Curves.easeOut,
-        );
-      }
       if (next.errorMessage != null &&
           next.errorMessage != previous?.errorMessage) {
         ScaffoldMessenger.of(context).showSnackBar(

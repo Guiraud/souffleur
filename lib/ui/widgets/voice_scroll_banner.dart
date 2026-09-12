@@ -33,20 +33,47 @@ class VoiceScrollBanner extends ConsumerWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.mic, color: Colors.tealAccent, size: 20),
+              Icon(
+                voiceState.isSpeaking ? Icons.graphic_eq : Icons.mic,
+                color: voiceState.isSpeaking ? Colors.tealAccent : Colors.white70,
+                size: 20,
+              ),
               const SizedBox(width: 8),
               Flexible(
-                child: Text(
-                  voiceState.currentWords.isNotEmpty
-                      ? voiceState.currentWords
-                      : context.tr('PrompterScreen.VoiceScroll_Listening'),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 13,
-                    fontStyle: FontStyle.italic,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      voiceState.currentWords.isNotEmpty
+                          ? voiceState.currentWords
+                          : context.tr('PrompterScreen.VoiceScroll_Listening'),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontStyle: voiceState.currentWords.isNotEmpty
+                            ? FontStyle.normal
+                            : FontStyle.italic,
+                        fontWeight: voiceState.isSpeaking
+                            ? FontWeight.w600
+                            : FontWeight.normal,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (voiceState.isListening && voiceState.matchedWordIndex > 0)
+                      Text(
+                        voiceState.isSpeaking
+                            ? 'Vitesse vocale : ~${voiceState.speechRateWpm.round()} mots/min'
+                            : 'En pause (reprenez la parole pour faire défiler)',
+                        style: TextStyle(
+                          color: voiceState.isSpeaking
+                              ? Colors.tealAccent
+                              : Colors.white60,
+                          fontSize: 10,
+                        ),
+                      ),
+                  ],
                 ),
               ),
               const SizedBox(width: 8),

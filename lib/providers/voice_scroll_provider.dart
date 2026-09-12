@@ -2,13 +2,239 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
+class ScriptToken {
+  final String raw;
+  final String normalized;
+  final int charOffset;
+  final int index;
+
+  const ScriptToken({
+    required this.raw,
+    required this.normalized,
+    required this.charOffset,
+    required this.index,
+  });
+
+  @override
+  String toString() => 'ScriptToken($raw, norm: $normalized, offset: $charOffset, idx: $index)';
+}
+
+/// Strips standard French accents and diacritics for insensitive matching.
+String stripFrenchDiacritics(String text) {
+  var result = text.toLowerCase()
+      .replaceAll('œ', 'oe')
+      .replaceAll('æ', 'ae');
+  const withDia = 'àáâäãåçèéêëìíîïñòóôöõùúûüýÿ';
+  const withoutDia = 'aaaaaaceeeeiiiinooooouuuuyy';
+  for (int i = 0; i < withDia.length; i++) {
+    result = result.replaceAll(withDia[i], withoutDia[i]);
+  }
+  return result;
+}
+
+/// Normalizes a French word by removing diacritics and non-alphanumerics.
+String normalizeFrenchWord(String word) {
+  final stripped = stripFrenchDiacritics(word);
+  return stripped.replaceAll(RegExp(r'[^a-z0-9]'), '');
+}
+
+/// Splits script text into tokens while tracking exact character offsets in the original text.
+List<ScriptToken> tokenizeScript(String text) {
+  final tokens = <ScriptToken>[];
+  final regExp = RegExp(r"[a-zA-ZÀ-ÿ0-9]+");
+  final matches = regExp.allMatches(text);
+  int index = 0;
+  for (final m in matches) {
+    final raw = m.group(0)!;
+    final norm = normalizeFrenchWord(raw);
+    if (norm.isNotEmpty) {
+      tokens.add(ScriptToken(
+        raw: raw,
+        normalized: norm,
+        charOffset: m.start,
+        index: index++,
+      ));
+    }
+  }
+  return tokens;
+}
+
+/// Splits recognized spoken text into normalized words.
+List<String> tokenizeSpoken(String text) {
+  final regExp = RegExp(r"[a-zA-ZÀ-ÿ0-9]+");
+  final matches = regExp.allMatches(text);
+  final words = <String>[];
+  for (final m in matches) {
+    final norm = normalizeFrenchWord(m.group(0)!);
+    if (norm.isNotEmpty) {
+      words.add(norm);
+    }
+  }
+  return words;
+}
+
+/// Compares two normalized words with fuzzy tolerance (stem/prefix matching, edit distance).
+bool wordsFuzzyEqual(String normA, String normB) {
+  if (normA == normB) return true;
+  if (normA.isEmpty || normB.isEmpty) return false;
+
+  // Prefix matching if one word starts with the other (e.g. plural: 'presentation' vs 'presentations')
+  if (normA.length >= 4 && normB.length >= 4) {
+    if (normA.startsWith(normB) || normB.startsWith(normA)) {
+      return true;
+    }
+  }
+
+  // Common stem matching for conjugations (e.g. 'decouvrir' vs 'decouvrez', stem: 'decouvr')
+  int commonPrefixLen = 0;
+  while (commonPrefixLen < normA.length &&
+      commonPrefixLen < normB.length &&
+      normA[commonPrefixLen] == normB[commonPrefixLen]) {
+    commonPrefixLen++;
+  }
+  if (commonPrefixLen >= 5 &&
+      (normA.length - commonPrefixLen) <= 3 &&
+      (normB.length - commonPrefixLen) <= 3) {
+    return true;
+  }
+
+  // Single typo tolerance for longer words (length >= 5)
+  if (normA.length >= 5 && normB.length >= 5) {
+    if ((normA.length - normB.length).abs() <= 1) {
+      if (_editDistanceAtMostOne(normA, normB)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+bool _editDistanceAtMostOne(String s1, String s2) {
+  if (s1 == s2) return true;
+  if ((s1.length - s2.length).abs() > 1) return false;
+  int i = 0, j = 0, diffs = 0;
+  while (i < s1.length && j < s2.length) {
+    if (s1[i] != s2[j]) {
+      diffs++;
+      if (diffs > 1) return false;
+      if (s1.length > s2.length) {
+        i++;
+      } else if (s2.length > s1.length) {
+        j++;
+      } else {
+        i++;
+        j++;
+      }
+    } else {
+      i++;
+      j++;
+    }
+  }
+  return true;
+}
+
+int? findMatchInScript({
+  required List<ScriptToken> scriptTokens,
+  required List<String> spokenNormWords,
+  required int currentIndex,
+}) {
+  if (scriptTokens.isEmpty || spokenNormWords.isEmpty) return null;
+
+  // 1. Multi-word phrase search (4, 3, 2 words) from tail of spoken words
+  for (int seqLen = 4; seqLen >= 2; seqLen--) {
+    if (spokenNormWords.length >= seqLen) {
+      final phrase = spokenNormWords.sublist(spokenNormWords.length - seqLen);
+      final match = _searchPhrase(scriptTokens, phrase, currentIndex);
+      if (match != null) return match;
+    }
+  }
+
+  // 2. Single-word search from tail (check last 2 spoken words, min length 2)
+  for (int i = spokenNormWords.length - 1;
+      i >= 0 && i >= spokenNormWords.length - 2;
+      i--) {
+    final word = spokenNormWords[i];
+    if (word.length >= 2) {
+      final match = _searchSingleWord(scriptTokens, word, currentIndex);
+      if (match != null) return match;
+    }
+  }
+
+  // 3. Global phrase search if speaker jumped ahead or restarted (3-word phrase)
+  if (spokenNormWords.length >= 3) {
+    final phrase = spokenNormWords.sublist(spokenNormWords.length - 3);
+    final globalMatch = _searchGlobalPhrase(scriptTokens, phrase);
+    if (globalMatch != null) return globalMatch;
+  }
+
+  return null;
+}
+
+int? _searchPhrase(
+  List<ScriptToken> script,
+  List<String> phrase,
+  int currentIndex,
+) {
+  final searchStart = (currentIndex - 3).clamp(0, script.length - 1);
+  final searchEnd = (currentIndex + 80).clamp(0, script.length);
+
+  for (int i = searchStart; i <= searchEnd - phrase.length; i++) {
+    bool matched = true;
+    for (int j = 0; j < phrase.length; j++) {
+      if (!wordsFuzzyEqual(script[i + j].normalized, phrase[j])) {
+        matched = false;
+        break;
+      }
+    }
+    if (matched) {
+      return i + phrase.length - 1;
+    }
+  }
+  return null;
+}
+
+int? _searchSingleWord(
+  List<ScriptToken> script,
+  String word,
+  int currentIndex,
+) {
+  final searchStart = (currentIndex - 1).clamp(0, script.length - 1);
+  final searchEnd = (currentIndex + 45).clamp(0, script.length);
+
+  for (int i = searchStart; i < searchEnd; i++) {
+    if (wordsFuzzyEqual(script[i].normalized, word)) {
+      return i;
+    }
+  }
+  return null;
+}
+
+int? _searchGlobalPhrase(List<ScriptToken> script, List<String> phrase) {
+  for (int i = 0; i <= script.length - phrase.length; i++) {
+    bool matched = true;
+    for (int j = 0; j < phrase.length; j++) {
+      if (!wordsFuzzyEqual(script[i + j].normalized, phrase[j])) {
+        matched = false;
+        break;
+      }
+    }
+    if (matched) {
+      return i + phrase.length - 1;
+    }
+  }
+  return null;
+}
+
 class VoiceScrollState {
   final bool isAvailable;
   final bool isListening;
   final String currentWords;
-  final double scrollProgress; // 0.0 to 1.0
+  final double scrollProgress; // 0.0 to 1.0 based on character position
   final int matchedWordIndex;
   final int totalWords;
+  final bool isSpeaking; // true when words are actively detected (<1.5s ago)
+  final double speechRateWpm; // detected words per minute
   final String? errorMessage;
 
   const VoiceScrollState({
@@ -18,6 +244,8 @@ class VoiceScrollState {
     this.scrollProgress = 0.0,
     this.matchedWordIndex = 0,
     this.totalWords = 0,
+    this.isSpeaking = false,
+    this.speechRateWpm = 140.0,
     this.errorMessage,
   });
 
@@ -28,6 +256,8 @@ class VoiceScrollState {
     double? scrollProgress,
     int? matchedWordIndex,
     int? totalWords,
+    bool? isSpeaking,
+    double? speechRateWpm,
     String? errorMessage,
     bool clearError = false,
   }) {
@@ -38,6 +268,8 @@ class VoiceScrollState {
       scrollProgress: scrollProgress ?? this.scrollProgress,
       matchedWordIndex: matchedWordIndex ?? this.matchedWordIndex,
       totalWords: totalWords ?? this.totalWords,
+      isSpeaking: isSpeaking ?? this.isSpeaking,
+      speechRateWpm: speechRateWpm ?? this.speechRateWpm,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
     );
   }
@@ -45,13 +277,22 @@ class VoiceScrollState {
 
 class VoiceScrollNotifier extends Notifier<VoiceScrollState> {
   final SpeechToText _speechToText = SpeechToText();
-  List<String> _scriptWords = [];
+  List<ScriptToken> _scriptTokens = [];
+  int _scriptTextLength = 0;
   bool _speechInitialized = false;
+  String _selectedLocaleId = 'fr_FR';
+
+  Timer? _silenceTimer;
+  Timer? _restartTimer;
+  DateTime? _lastMatchTime;
+  double _currentWpm = 140.0;
 
   @override
   VoiceScrollState build() {
     ref.onDispose(() {
       _stopSpeech();
+      _silenceTimer?.cancel();
+      _restartTimer?.cancel();
     });
     return const VoiceScrollState();
   }
@@ -65,9 +306,13 @@ class VoiceScrollNotifier extends Notifier<VoiceScrollState> {
         },
         onStatus: (status) {
           if (status == 'done' || status == 'notListening') {
-            // Keep state or auto-restart if still flagged listening
             if (state.isListening && _speechToText.isAvailable) {
-              _restartListening();
+              _restartTimer?.cancel();
+              _restartTimer = Timer(const Duration(milliseconds: 150), () {
+                if (state.isListening) {
+                  _restartListening();
+                }
+              });
             }
           }
         },
@@ -82,6 +327,18 @@ class VoiceScrollNotifier extends Notifier<VoiceScrollState> {
     }
   }
 
+  Future<String> _resolveFrenchLocale() async {
+    try {
+      final locales = await _speechToText.locales();
+      for (final loc in locales) {
+        if (loc.localeId.toLowerCase().startsWith('fr')) {
+          return loc.localeId;
+        }
+      }
+    } catch (_) {}
+    return 'fr_FR';
+  }
+
   void _restartListening() {
     if (!state.isListening) return;
     try {
@@ -93,6 +350,7 @@ class VoiceScrollNotifier extends Notifier<VoiceScrollState> {
           listenMode: ListenMode.dictation,
           partialResults: true,
           cancelOnError: false,
+          localeId: _selectedLocaleId,
         ),
       );
     } catch (_) {}
@@ -103,28 +361,36 @@ class VoiceScrollNotifier extends Notifier<VoiceScrollState> {
     if (!_speechInitialized) {
       state = state.copyWith(
         isListening: false,
-        errorMessage: 'Speech recognition is not available on this device.',
+        errorMessage: 'Reconnaissance vocale non disponible sur cet appareil.',
       );
       return;
     }
 
-    _scriptWords = _tokenize(scriptText);
-    if (_scriptWords.isEmpty) {
+    _scriptTextLength = scriptText.length;
+    _scriptTokens = tokenizeScript(scriptText);
+    if (_scriptTokens.isEmpty) {
       state = state.copyWith(
         isListening: false,
-        errorMessage: 'Script is empty.',
+        errorMessage: 'Le texte du prompteur est vide.',
       );
       return;
     }
+
+    _selectedLocaleId = localeId ?? await _resolveFrenchLocale();
 
     state = state.copyWith(
       isListening: true,
+      isSpeaking: false,
       currentWords: '',
       scrollProgress: 0.0,
       matchedWordIndex: 0,
-      totalWords: _scriptWords.length,
+      totalWords: _scriptTokens.length,
+      speechRateWpm: 140.0,
       clearError: true,
     );
+
+    _lastMatchTime = null;
+    _currentWpm = 140.0;
 
     try {
       await _speechToText.listen(
@@ -135,114 +401,73 @@ class VoiceScrollNotifier extends Notifier<VoiceScrollState> {
           listenMode: ListenMode.dictation,
           partialResults: true,
           cancelOnError: false,
-          localeId: localeId,
+          localeId: _selectedLocaleId,
         ),
       );
     } catch (e) {
       state = state.copyWith(
         isListening: false,
-        errorMessage: 'Failed to start listening: $e',
+        errorMessage: 'Impossible de démarrer l\'écoute: $e',
       );
     }
   }
 
   void _onSpeechResult(String recognizedWords) {
-    if (recognizedWords.isEmpty || _scriptWords.isEmpty) return;
+    if (recognizedWords.isEmpty || _scriptTokens.isEmpty) return;
 
-    final spokenWords = _tokenize(recognizedWords);
+    final spokenWords = tokenizeSpoken(recognizedWords);
     if (spokenWords.isEmpty) return;
 
-    final match = _findMatchInScript(
-      scriptWords: _scriptWords,
-      spokenWords: spokenWords,
+    final match = findMatchInScript(
+      scriptTokens: _scriptTokens,
+      spokenNormWords: spokenWords,
       currentIndex: state.matchedWordIndex,
     );
 
-    if (match != null && match >= state.matchedWordIndex) {
-      final double progress = (match / (_scriptWords.length - 1)).clamp(0.0, 1.0);
+    final now = DateTime.now();
+
+    // Calculate speaking pace (WPM)
+    if (_lastMatchTime != null && match != null && match > state.matchedWordIndex) {
+      final wordsDelta = match - state.matchedWordIndex;
+      final timeDeltaSec = now.difference(_lastMatchTime!).inMilliseconds / 1000.0;
+      if (timeDeltaSec >= 0.3 && timeDeltaSec <= 5.0) {
+        final instantWpm = (wordsDelta / timeDeltaSec) * 60.0;
+        if (instantWpm >= 50 && instantWpm <= 350) {
+          _currentWpm = _currentWpm * 0.7 + instantWpm * 0.3;
+        }
+      }
+    }
+    _lastMatchTime = now;
+
+    // Reset silence timer: user is speaking, will revert to silent after 1.5s of inactivity
+    _silenceTimer?.cancel();
+    _silenceTimer = Timer(const Duration(milliseconds: 1500), () {
+      state = state.copyWith(isSpeaking: false);
+    });
+
+    if (match != null) {
+      final charOffset = _scriptTokens[match].charOffset;
+      final textLen = _scriptTextLength > 0 ? _scriptTextLength : 1;
+      final double progress = (charOffset / textLen).clamp(0.0, 1.0);
+
       state = state.copyWith(
         currentWords: recognizedWords,
         matchedWordIndex: match,
         scrollProgress: progress,
+        isSpeaking: true,
+        speechRateWpm: _currentWpm,
       );
     } else {
-      state = state.copyWith(currentWords: recognizedWords);
+      state = state.copyWith(
+        currentWords: recognizedWords,
+        isSpeaking: true,
+      );
     }
-  }
-
-  int? _findMatchInScript({
-    required List<String> scriptWords,
-    required List<String> spokenWords,
-    required int currentIndex,
-  }) {
-    // Attempt multi-word sequence match from the tail of spoken words (2-4 words)
-    for (int seqLen = 4; seqLen >= 2; seqLen--) {
-      if (spokenWords.length >= seqLen) {
-        final phrase = spokenWords.sublist(spokenWords.length - seqLen);
-        final match = _searchPhrase(scriptWords, phrase, currentIndex);
-        if (match != null) return match;
-      }
-    }
-
-    // Fallback: match the single last spoken word
-    if (spokenWords.isNotEmpty) {
-      final lastWord = spokenWords.last;
-      return _searchSingleWord(scriptWords, lastWord, currentIndex);
-    }
-
-    return null;
-  }
-
-  int? _searchPhrase(List<String> script, List<String> phrase, int currentIndex) {
-    final searchStart = (currentIndex - 2).clamp(0, script.length - 1);
-    final searchEnd = (currentIndex + 40).clamp(0, script.length);
-
-    for (int i = searchStart; i <= searchEnd - phrase.length; i++) {
-      bool matched = true;
-      for (int j = 0; j < phrase.length; j++) {
-        if (!_wordsFuzzyEqual(script[i + j], phrase[j])) {
-          matched = false;
-          break;
-        }
-      }
-      if (matched) {
-        return i + phrase.length - 1;
-      }
-    }
-    return null;
-  }
-
-  int? _searchSingleWord(List<String> script, String word, int currentIndex) {
-    if (word.length < 3) return null; // Avoid false positives on short stop words
-    final searchStart = (currentIndex - 1).clamp(0, script.length - 1);
-    final searchEnd = (currentIndex + 35).clamp(0, script.length);
-
-    for (int i = searchStart; i < searchEnd; i++) {
-      if (_wordsFuzzyEqual(script[i], word)) {
-        return i;
-      }
-    }
-    return null;
-  }
-
-  bool _wordsFuzzyEqual(String a, String b) {
-    if (a == b) return true;
-    if (a.length >= 4 && b.length >= 4) {
-      return a.startsWith(b) || b.startsWith(a);
-    }
-    return false;
-  }
-
-  List<String> _tokenize(String text) {
-    return text
-        .toLowerCase()
-        .replaceAll(RegExp(r"[^\wÀ-ÿ\s']"), ' ')
-        .split(RegExp(r'\s+'))
-        .where((s) => s.trim().isNotEmpty)
-        .toList();
   }
 
   Future<void> _stopSpeech() async {
+    _silenceTimer?.cancel();
+    _restartTimer?.cancel();
     try {
       await _speechToText.stop();
     } catch (_) {}
@@ -250,7 +475,10 @@ class VoiceScrollNotifier extends Notifier<VoiceScrollState> {
 
   Future<void> stopListening() async {
     await _stopSpeech();
-    state = state.copyWith(isListening: false);
+    state = state.copyWith(
+      isListening: false,
+      isSpeaking: false,
+    );
   }
 
   void toggleVoiceScroll(String scriptText, {String? localeId}) {
@@ -266,6 +494,7 @@ class VoiceScrollNotifier extends Notifier<VoiceScrollState> {
       scrollProgress: 0.0,
       matchedWordIndex: 0,
       currentWords: '',
+      isSpeaking: false,
     );
   }
 

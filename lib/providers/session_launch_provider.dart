@@ -15,7 +15,7 @@ final launchWithCameraProvider =
 
 class LaunchWithVoiceScrollNotifier extends Notifier<bool> {
   @override
-  bool build() => false;
+  bool build() => true;
 
   void set(bool val) => state = val;
   void toggle() => state = !state;
