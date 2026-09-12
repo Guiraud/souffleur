@@ -91,7 +91,7 @@ flutter_launcher_icons:
     generate: true
 
 msix_config:
-  display_name: TiefPrompt
+  display_name: Souffleur
   publisher_display_name: Tiefseetauchner
   identity_name: io.github.tiefseetauchner.tiefprompt
   msix_version: 1.0.0.0
