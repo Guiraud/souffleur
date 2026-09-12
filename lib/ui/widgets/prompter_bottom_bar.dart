@@ -36,42 +36,10 @@ class PrompterBottomBar extends ConsumerWidget {
 
   List<Widget> _getWidgetButtons(BuildContext context, WidgetRef ref) {
     return [
+      // Group 1: Playback & Speed Controls (Always front & visible)
       _ButtonGroup(
-        leadingWidth: 50,
+        leadingWidth: 20,
         children: [
-          IconButton(
-            icon: Icon(Icons.save),
-            tooltip: context.tr("PrompterScreen.IconButton_Save"),
-            onPressed: () => ref
-                .read(settingsProvider.notifier)
-                .applySettingsFromPrompter(ref.read(prompterProvider)),
-          ),
-        ],
-      ),
-      _ButtonGroup(
-        children: [
-          _FeatureGatedIconButton(
-            feature: Feature.displaySettings,
-            displayText: context.tr(
-              "PrompterScreen.IconButton_DisplaySettings",
-            ),
-            icon: Icon(Icons.display_settings),
-            tooltip: context.tr("PrompterScreen.IconButton_DisplaySettings"),
-            onPressed: () =>
-                ref.read(displaySettingsVisibleProvider.notifier).toggle(),
-          ),
-        ],
-      ),
-      _ButtonGroup(
-        children: [
-          _FeatureGatedIconButton(
-            feature: Feature.scrollSpeed,
-            displayText: context.tr("PrompterScreen.IconButton_DecreaseSpeed"),
-            icon: Icon(Icons.remove),
-            tooltip: context.tr("PrompterScreen.IconButton_DecreaseSpeed"),
-            onPressed: () =>
-                ref.read(prompterProvider.notifier).decreaseSpeed(.1),
-          ),
           _FeatureGatedIconButton(
             feature: Feature.playPause,
             displayText: context.tr(
@@ -88,6 +56,14 @@ class PrompterBottomBar extends ConsumerWidget {
           ),
           _FeatureGatedIconButton(
             feature: Feature.scrollSpeed,
+            displayText: context.tr("PrompterScreen.IconButton_DecreaseSpeed"),
+            icon: Icon(Icons.remove),
+            tooltip: context.tr("PrompterScreen.IconButton_DecreaseSpeed"),
+            onPressed: () =>
+                ref.read(prompterProvider.notifier).decreaseSpeed(.1),
+          ),
+          _FeatureGatedIconButton(
+            feature: Feature.scrollSpeed,
             displayText: context.tr("PrompterScreen.IconButton_IncreaseSpeed"),
             icon: Icon(Icons.add),
             tooltip: context.tr("PrompterScreen.IconButton_IncreaseSpeed"),
@@ -96,18 +72,8 @@ class PrompterBottomBar extends ConsumerWidget {
           ),
         ],
       ),
-      _ButtonGroup(
-        children: [
-          _FeatureGatedIconButton(
-            feature: Feature.textSettings,
-            displayText: context.tr("PrompterScreen.IconButton_TextFormat"),
-            icon: Icon(Icons.text_format),
-            tooltip: context.tr("PrompterScreen.IconButton_TextFormat"),
-            onPressed: () =>
-                ref.read(fontSettingsVisibleProvider.notifier).toggle(),
-          ),
-        ],
-      ),
+
+      // Group 2: Camera, Record & Voice Scroll (Primary interactive tools)
       _ButtonGroup(
         children: [
           IconButton(
@@ -168,9 +134,42 @@ class PrompterBottomBar extends ConsumerWidget {
           ),
         ],
       ),
+
+      // Group 3: Text & Display formatting
+      _ButtonGroup(
+        children: [
+          _FeatureGatedIconButton(
+            feature: Feature.textSettings,
+            displayText: context.tr("PrompterScreen.IconButton_TextFormat"),
+            icon: Icon(Icons.text_format),
+            tooltip: context.tr("PrompterScreen.IconButton_TextFormat"),
+            onPressed: () =>
+                ref.read(fontSettingsVisibleProvider.notifier).toggle(),
+          ),
+          _FeatureGatedIconButton(
+            feature: Feature.displaySettings,
+            displayText: context.tr(
+              "PrompterScreen.IconButton_DisplaySettings",
+            ),
+            icon: Icon(Icons.display_settings),
+            tooltip: context.tr("PrompterScreen.IconButton_DisplaySettings"),
+            onPressed: () =>
+                ref.read(displaySettingsVisibleProvider.notifier).toggle(),
+          ),
+        ],
+      ),
+
+      // Group 4: Save & General Settings
       _ButtonGroup(
         trailingWidth: 50,
         children: [
+          IconButton(
+            icon: Icon(Icons.save),
+            tooltip: context.tr("PrompterScreen.IconButton_Save"),
+            onPressed: () => ref
+                .read(settingsProvider.notifier)
+                .applySettingsFromPrompter(ref.read(prompterProvider)),
+          ),
           IconButton(
             icon: Icon(Icons.settings),
             tooltip: context.tr("PrompterScreen.IconButton_Settings"),

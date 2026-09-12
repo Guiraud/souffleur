@@ -13,6 +13,7 @@ import 'package:tiefprompt/providers/settings_provider.dart';
 import 'package:tiefprompt/services/script_service.dart';
 import 'package:tiefprompt/providers/camera_provider.dart';
 import 'package:tiefprompt/providers/script_provider.dart';
+import 'package:tiefprompt/providers/session_launch_provider.dart';
 import 'package:tiefprompt/providers/voice_scroll_provider.dart';
 import 'package:tiefprompt/ui/widgets/countdown_timer.dart';
 import 'package:tiefprompt/ui/widgets/current_chapter_banner.dart';
@@ -72,6 +73,13 @@ class _PrompterScreenState extends ConsumerState<PrompterScreen> {
         _scrollableTextController.jumpTo(
           storedScrollOffset ?? MediaQuery.of(context).size.height / 2,
         );
+      }
+      if (ref.read(launchWithCameraProvider)) {
+        ref.read(cameraProvider.notifier).enableCamera();
+      }
+      if (ref.read(launchWithVoiceScrollProvider)) {
+        final scriptText = ref.read(scriptProvider).text;
+        ref.read(voiceScrollProvider.notifier).startListening(scriptText);
       }
     });
 

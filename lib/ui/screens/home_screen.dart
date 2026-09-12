@@ -15,6 +15,7 @@ import 'package:tiefprompt/providers/database_provider.dart';
 import 'package:tiefprompt/providers/feature_provider.dart';
 import 'package:tiefprompt/providers/prompter_provider.dart';
 import 'package:tiefprompt/providers/script_provider.dart';
+import 'package:tiefprompt/providers/session_launch_provider.dart';
 import 'package:tiefprompt/services/script_service.dart';
 import 'package:tiefprompt/ui/widgets/changelog_modal.dart';
 import 'package:tiefprompt/ui/widgets/wave_divider.dart';
@@ -189,23 +190,101 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  Wrap(
-                    alignment: WrapAlignment.center,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    spacing: 16,
-                    runSpacing: 16,
-                    direction: Axis.horizontal,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          ref.invalidate(prompterProvider);
-                          context.push('/teleprompter');
-                        },
-                        child: Text(
-                          context.tr("HomeScreen.ElevatedButton_Start"),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(120),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.outlineVariant.withAlpha(100),
+                      ),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    child: Column(
+                      children: [
+                        SwitchListTile(
+                          value: ref.watch(launchWithCameraProvider),
+                          onChanged: (val) {
+                            ref.read(launchWithCameraProvider.notifier).set(val);
+                          },
+                          secondary: Icon(
+                            Icons.videocam,
+                            color: ref.watch(launchWithCameraProvider)
+                                ? Theme.of(context).colorScheme.primary
+                                : Colors.grey,
+                            size: 28,
+                          ),
+                          title: Text(
+                            context.tr("HomeScreen.CameraToggle_title"),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Text(
+                            context.tr("HomeScreen.CameraToggle_subtitle"),
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ),
+                        const Divider(height: 1),
+                        SwitchListTile(
+                          value: ref.watch(launchWithVoiceScrollProvider),
+                          onChanged: (val) {
+                            ref.read(launchWithVoiceScrollProvider.notifier).set(val);
+                          },
+                          secondary: Icon(
+                            Icons.mic,
+                            color: ref.watch(launchWithVoiceScrollProvider)
+                                ? Colors.tealAccent.shade700
+                                : Colors.grey,
+                            size: 28,
+                          ),
+                          title: Text(
+                            context.tr("HomeScreen.VoiceScrollToggle_title"),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Text(
+                            context.tr("HomeScreen.VoiceScrollToggle_subtitle"),
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      ElevatedButton(
+                      icon: Icon(
+                        ref.watch(launchWithCameraProvider)
+                            ? Icons.videocam
+                            : Icons.play_arrow,
+                        size: 24,
+                      ),
+                      label: Text(
+                        ref.watch(launchWithCameraProvider)
+                            ? "FILMER AVEC LE PROMPTEUR"
+                            : context.tr("HomeScreen.ElevatedButton_Start").toUpperCase(),
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                      onPressed: () {
+                        ref.invalidate(prompterProvider);
+                        context.push('/teleprompter');
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      OutlinedButton.icon(
+                        icon: const Icon(Icons.file_open, size: 18),
                         onPressed: () {
                           if (ref.read(scriptProvider).isSaved) {
                             context.push('/open_file');
@@ -215,11 +294,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             );
                           }
                         },
-                        child: Text(
-                          context.tr("HomeScreen.ElevatedButton_Select"),
-                        ),
+                        label: Text(context.tr("HomeScreen.ElevatedButton_Select")),
                       ),
-                      ElevatedButton(
+                      const SizedBox(width: 12),
+                      OutlinedButton.icon(
+                        icon: const Icon(Icons.save, size: 18),
                         onPressed: () async {
                           if (ref.read(scriptProvider).ephemeral) {
                             _saveCurrentScript();
@@ -230,9 +309,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             await _showNewOrOverrideDialog();
                           }
                         },
-                        child: Text(
-                          context.tr('HomeScreen.ElevatedButton_Save'),
-                        ),
+                        label: Text(context.tr('HomeScreen.ElevatedButton_Save')),
                       ),
                     ],
                   ),

@@ -13,7 +13,7 @@ const double kPrompterMaxFontSize = 420.0;
 const double kPrompterMinSideMargin = 0.0;
 const double kPrompterMaxSideMargin = 99.0;
 
-const String kRepoUrl = "https://github.com/Tiefseetauchner/tiefprompt";
+const String kRepoUrl = "https://github.com/Guiraud/souffleur";
 const String kWeblateUrl = "https://hosted.weblate.org/projects/tiefprompt/";
 const String kPrivacyPolicyUrl = "https://tiefprompt.com/policies/privacy/en/";
 const String kLukeChriswalkerUrl = "https://www.lukechriswalker.at";
