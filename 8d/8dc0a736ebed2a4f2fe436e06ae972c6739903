@@ -1,0 +1,29 @@
+lib/ui/widgets/prompter_bottom_bar.dart
+  s_041bfbea644396::t_84a11e1854d3e9 229-239,241-248,250-251
+  s_041bfbea644396::t_1723b181eea376 17
+  s_041bfbea644396::t_6820b7122898f7 127-140
+lib/providers/voice_scroll_provider.dart
+  s_041bfbea644396::t_66b27864a60e1e 138
+lib/ui/screens/prompter_screen.dart
+  s_041bfbea644396::t_e05e450619f73d 211-212
+lib/ui/widgets/prompter_camera_controls.dart
+  s_041bfbea644396::t_23cc313be863f6 338-398
+  s_041bfbea644396::t_c7009db97046ee 5,8-28,43-51,56-86,88-89,94-156,173,181-243
+  s_041bfbea644396::t_0f1827f60b5035 244
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "development:1.7.1",
+  "base_commit_sha": "8d8dc0a736ebed2a4f2fe436e06ae972c6739903",
+  "prompts": {},
+  "sessions": {
+    "s_041bfbea644396": {
+      "agent_id": {
+        "tool": "antigravity",
+        "id": "56031123-fbf6-4e70-9210-f563471e2e3b",
+        "model": "gemini-3.8-flash-high"
+      },
+      "human_author": "Guiraud <mehdi.guiraud@gmail.com>"
+    }
+  }
+}
