@@ -1,0 +1,25 @@
+ios/Runner/Info.plist
+  s_041bfbea644396::t_b8e30feeef3d42 10,18
+android/app/src/main/AndroidManifest.xml
+  s_041bfbea644396::t_66a717338df6a7 14
+pubspec.yaml
+  s_041bfbea644396::t_327cd9de61c1d5 94
+assets/translations/fr-FR.json
+  s_041bfbea644396::t_806845a1c04aab 2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "development:1.7.1",
+  "base_commit_sha": "076729c7ff23d1d26bdeb072b3c25d1b116fdd09",
+  "prompts": {},
+  "sessions": {
+    "s_041bfbea644396": {
+      "agent_id": {
+        "tool": "antigravity",
+        "id": "56031123-fbf6-4e70-9210-f563471e2e3b",
+        "model": "gemini-3.8-flash-high"
+      },
+      "human_author": "Guiraud <mehdi.guiraud@gmail.com>"
+    }
+  }
+}
