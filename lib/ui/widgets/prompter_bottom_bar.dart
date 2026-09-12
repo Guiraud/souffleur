@@ -14,6 +14,7 @@ import 'package:tiefprompt/providers/settings_provider.dart';
 import 'package:tiefprompt/providers/theme_provider.dart';
 import 'package:tiefprompt/providers/voice_scroll_provider.dart';
 import 'package:tiefprompt/ui/screens/reset_settings_screen.dart';
+import 'package:tiefprompt/ui/widgets/prompter_camera_controls.dart';
 
 class _BoolToggle extends Notifier<bool> {
   _BoolToggle(this._initial);
@@ -123,6 +124,20 @@ class PrompterBottomBar extends ConsumerWidget {
               ref.read(cameraProvider.notifier).toggleCamera();
             },
           ),
+          if (ref.watch(cameraProvider).isEnabled)
+            IconButton(
+              icon: Icon(
+                ref.watch(cameraProvider).isRecording
+                    ? Icons.stop_circle
+                    : Icons.radio_button_checked,
+                color: Colors.redAccent,
+                size: 26,
+              ),
+              tooltip: ref.watch(cameraProvider).isRecording
+                  ? context.tr('PrompterScreen.Camera_Stop')
+                  : context.tr('PrompterScreen.Camera_Record'),
+              onPressed: () => handleCameraRecording(context, ref),
+            ),
           IconButton(
             icon: Icon(
               ref.watch(voiceScrollProvider).isListening
@@ -211,27 +226,29 @@ class PrompterBottomBar extends ConsumerWidget {
                   ),
                   Positioned(
                     right: 0,
-                    child: Column(
-                      children: [
-                        Text(
-                          context.tr(
-                            "PrompterScreen.speed",
-                            args: [speed.toStringAsFixed(1)],
+                    child: IgnorePointer(
+                      child: Column(
+                        children: [
+                          Text(
+                            context.tr(
+                              "PrompterScreen.speed",
+                              args: [speed.toStringAsFixed(1)],
+                            ),
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
                           ),
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface,
+                          Text(
+                            context.tr(
+                              "PrompterScreen.fontsize",
+                              args: [fontSize.toStringAsFixed(1)],
+                            ),
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
                           ),
-                        ),
-                        Text(
-                          context.tr(
-                            "PrompterScreen.fontsize",
-                            args: [fontSize.toStringAsFixed(1)],
-                          ),
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ],

@@ -131,11 +131,11 @@ class VoiceScrollNotifier extends Notifier<VoiceScrollState> {
         onResult: (result) {
           _onSpeechResult(result.recognizedWords);
         },
-        localeId: localeId,
         listenOptions: SpeechListenOptions(
           listenMode: ListenMode.dictation,
           partialResults: true,
           cancelOnError: false,
+          localeId: localeId,
         ),
       );
     } catch (e) {

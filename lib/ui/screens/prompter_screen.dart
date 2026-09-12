@@ -204,12 +204,12 @@ class _PrompterScreenState extends ConsumerState<PrompterScreen> {
             if (cameraState.isEnabled &&
                 cameraState.previewMode == CameraPreviewMode.floating)
               const PrompterCameraFloatingPreview(),
-            if (cameraState.isEnabled)
-              const PrompterCameraControlsOverlay(),
             if (voiceScrollState.isListening)
               const VoiceScrollBanner(),
             if (ref.watch(controlsVisibleProvider)) PrompterTopBar(),
             if (ref.watch(controlsVisibleProvider)) PrompterBottomBar(),
+            if (cameraState.isEnabled)
+              const PrompterCameraControlsOverlay(),
             if (displayCountdown && prompterConfig.countdownDuration > 0)
               CountdownTimer(
                 duration: prompterConfig.countdownDuration.toInt(),
