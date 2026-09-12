@@ -1,0 +1,39 @@
+lib/ui/screens/prompter_screen.dart
+  s_041bfbea644396::t_18e405b4a42a88 77-83
+  s_041bfbea644396::t_87c745c0658160 16
+lib/ui/screens/home_screen.dart
+  s_041bfbea644396::t_9a06ea4b119571 207,229
+  s_041bfbea644396::t_cd12ca3abc729c 193-206,208-228,230-257,260-287,297,299-301,312
+  s_041bfbea644396::t_81a556ec65dbfc 18
+pubspec.yaml
+  s_041bfbea644396::t_2b67797d882cbb 19
+lib/providers/session_launch_provider.dart
+  s_041bfbea644396::t_b93d45d7c058cc 3-27
+  s_041bfbea644396::t_ad040d0c033157 1-2
+assets/translations/fr-FR.json
+  s_041bfbea644396::t_939d8b12a5eb4b 21-24
+assets/translations/en-US.json
+  s_041bfbea644396::t_fa67d0026638d2 21-24
+lib/ui/widgets/prompter_bottom_bar.dart
+  s_041bfbea644396::t_c06a81d666ce65 39,41,57-64,75-76,137-162,166-172
+lib/ui/widgets/prompter_top_bar.dart
+  s_041bfbea644396::t_99c749ed62743e 4,6,14-15,23,40-41,46-84
+lib/core/constants.dart
+  s_041bfbea644396::t_e4ad8e4bebb63e 16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "development:1.7.1",
+  "base_commit_sha": "c9f3f055c550c2c03330b58b792d1b73f51ac182",
+  "prompts": {},
+  "sessions": {
+    "s_041bfbea644396": {
+      "agent_id": {
+        "tool": "antigravity",
+        "id": "56031123-fbf6-4e70-9210-f563471e2e3b",
+        "model": "gemini-3.8-flash-high"
+      },
+      "human_author": "Guiraud <mehdi.guiraud@gmail.com>"
+    }
+  }
+}
