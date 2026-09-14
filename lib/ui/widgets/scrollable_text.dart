@@ -1,4 +1,7 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tief_weave/markdown.dart';
@@ -68,6 +71,9 @@ class _ScrollableTextState extends ConsumerState<ScrollableText>
   List<({String title, double offset})> _chapterOffsets = [];
   double _topPadding = 0;
   double _mediaHeight = 0;
+  // Plain-text paragraph, measured to put the voice-matched word on the
+  // reading line.
+  final GlobalKey _plainTextKey = GlobalKey();
 
   void _checkScrollingState() {
     final isPlaying = ref.read(prompterProvider).isPlaying;
@@ -221,55 +227,70 @@ class _ScrollableTextState extends ConsumerState<ScrollableText>
     controller.jumpTo(controller.position.pixels + calculatedScrollOffset);
   }
 
+  /// Reading line, as a fraction of the viewport height from its top: the
+  /// voice-matched word is kept right at the top, near the camera, with the
+  /// upcoming lines visible below it.
+  static const double _readingLineRatio = 0.08;
+
+  /// Backward corrections smaller than this (a word re-matched on the line
+  /// below) are ignored so the text never jitters back and forth.
+  static const double _backwardTolerance = 60.0;
+
+  /// Scroll offset that puts the voice-matched word on the reading line.
+  double _voiceTargetPixels(
+    ScrollPosition position,
+    VoiceScrollState voiceState,
+  ) {
+    final readingLine = position.viewportDimension * _readingLineRatio;
+    final wordY =
+        _matchedWordContentY(voiceState) ??
+        _estimatedContentY(position, voiceState.scrollProgress);
+    return (wordY - readingLine).clamp(0.0, position.maxScrollExtent);
+  }
+
+  /// Exact top of the matched word's line in the scroll content, measured on
+  /// the laid-out paragraph (plain-text mode only).
+  double? _matchedWordContentY(VoiceScrollState voiceState) {
+    final start = voiceState.highlightStart;
+    if (start < 0 || start > widget.text.length) return null;
+    final paragraph = _plainTextKey.currentContext?.findRenderObject();
+    if (paragraph is! RenderParagraph || !paragraph.hasSize) return null;
+    final caret = paragraph.getOffsetForCaret(
+      TextPosition(offset: start),
+      Rect.zero,
+    );
+    // The text is the first child below the scroll content's top padding.
+    return _topPadding + caret.dy;
+  }
+
+  /// Markdown-mode estimate, interpolated from the character progress.
+  double _estimatedContentY(ScrollPosition position, double progress) {
+    // Content = top padding + text + "The End" box, each padding one screen.
+    final textHeight =
+        (position.maxScrollExtent + position.viewportDimension - 2 * _mediaHeight)
+            .clamp(0.0, double.infinity);
+    return _topPadding + progress * textHeight;
+  }
+
   void _tickVoiceScroll(double deltaSeconds, VoiceScrollState voiceState) {
     final controller = widget.controller.scrollController;
-    final maxScroll = controller.position.maxScrollExtent;
-    final mediaH = _mediaHeight > 0 ? _mediaHeight : 800.0;
-    final textHeight = (maxScroll - mediaH).clamp(0.0, double.infinity);
-
-    // Reading eye-line is at 40% from top of screen (comfortable reading height near camera)
-    final readingY = mediaH * 0.40;
-    final startScroll = mediaH - readingY;
-    final targetPixels =
-        (startScroll + voiceState.scrollProgress * textHeight).clamp(0.0, maxScroll);
-    final currentPixels = controller.position.pixels;
+    final position = controller.position;
+    final targetPixels = _voiceTargetPixels(position, voiceState);
+    final currentPixels = position.pixels;
     final distance = targetPixels - currentPixels;
 
-    if (currentPixels >= maxScroll && targetPixels >= maxScroll - 10) {
+    if (currentPixels >= position.maxScrollExtent &&
+        targetPixels >= position.maxScrollExtent - 10) {
       _onReachedEnd?.call();
       return;
     }
 
-    if (voiceState.isSpeaking) {
-      if (distance > 0) {
-        // Target is ahead: scale speed dynamically with distance
-        // The faster the user speaks, the further ahead target moves, and the faster it rolls!
-        final catchUpSpeed = (distance * 3.5).clamp(35.0, 850.0);
-        final advance = (catchUpSpeed * deltaSeconds).clamp(0.0, distance);
-        controller.jumpTo(currentPixels + advance);
-      } else if (distance > -25.0) {
-        // Aligned with target: keep rolling smoothly forward at baseline speaking rate
-        final baselineSpeed = _getScrollOffsetInLinesPerSecond(1.2);
-        final advance = baselineSpeed * deltaSeconds;
-        controller.jumpTo((currentPixels + advance).clamp(0.0, targetPixels + 40.0));
-      } else if (distance < -50.0) {
-        // User skipped backwards in text: smoothly glide backwards to match
-        final backSpeed = (distance * 3.5).clamp(-850.0, -35.0);
-        final advance = (backSpeed * deltaSeconds).clamp(distance, 0.0);
-        controller.jumpTo(currentPixels + advance);
-      }
-    } else {
-      // User paused speaking (silence > 1.5s)
-      if (distance.abs() > 2.0) {
-        // Smoothly settle to the target word
-        final settleSpeed = (distance.abs() * 3.0).clamp(20.0, 350.0);
-        final step = settleSpeed * deltaSeconds;
-        final advance = distance > 0
-            ? step.clamp(0.0, distance)
-            : (-step).clamp(distance, 0.0);
-        controller.jumpTo(currentPixels + advance);
-      }
-      // When distance.abs() <= 2.0, completely settled!
+    // Glide toward the word, faster the further behind it.
+    final step = (distance.abs() * 3.5).clamp(30.0, 900.0) * deltaSeconds;
+    if (distance > 1.0) {
+      controller.jumpTo(currentPixels + math.min(step, distance));
+    } else if (distance < -_backwardTolerance) {
+      controller.jumpTo(currentPixels + math.max(-step, distance));
     }
   }
 
@@ -329,16 +350,11 @@ class _ScrollableTextState extends ConsumerState<ScrollableText>
         if (next > (previous ?? 0) &&
             widget.controller.scrollController.hasClients) {
           final controller = widget.controller.scrollController;
-          final maxScroll = controller.position.maxScrollExtent;
-          final mediaH = _mediaHeight > 0 ? _mediaHeight : 800.0;
-          final textHeight = (maxScroll - mediaH).clamp(0.0, double.infinity);
-          final readingY = mediaH * 0.40;
-          final startScroll = mediaH - readingY;
-          final targetPixels = (startScroll +
-                  ref.read(voiceScrollProvider).scrollProgress * textHeight)
-              .clamp(0.0, maxScroll);
           controller.animateTo(
-            targetPixels,
+            _voiceTargetPixels(
+              controller.position,
+              ref.read(voiceScrollProvider),
+            ),
             duration: const Duration(milliseconds: 350),
             curve: Curves.easeOutCubic,
           );
@@ -420,6 +436,7 @@ class _ScrollableTextState extends ConsumerState<ScrollableText>
                 // voice-matched word is only highlighted in plain-text mode.
                 Text.rich(
                   _highlightedText(highlight),
+                  key: _plainTextKey,
                   style: widget.style,
                   textAlign: alignment,
                 ),

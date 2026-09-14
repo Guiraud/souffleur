@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tiefprompt/providers/voice_scroll_provider.dart';
@@ -28,6 +29,26 @@ class _MatchedFirstWordVoiceScroll extends VoiceScrollNotifier {
     totalWords: 3,
     highlightStart: 0,
     highlightEnd: 7,
+  );
+}
+
+String _lines(int count) =>
+    List.generate(count, (i) => 'Ligne numéro $i du texte.').join('\n\n');
+
+/// Speaker is reading line 150 of [_lines] (200).
+class _ReadingLine150VoiceScroll extends VoiceScrollNotifier {
+  static final text = _lines(200);
+  static final start = text.indexOf('Ligne numéro 150 ');
+
+  @override
+  VoiceScrollState build() => VoiceScrollState(
+    isListening: true,
+    isSpeaking: true,
+    scrollProgress: start / text.length,
+    matchedWordIndex: 750,
+    totalWords: 1000,
+    highlightStart: start,
+    highlightEnd: start + 5,
   );
 }
 
@@ -73,6 +94,35 @@ void main() {
       expect(controller.scrollController.offset, greaterThan(initialOffset));
     },
   );
+
+  testWidgets('voice-matched word settles on the reading line at the top', (
+    tester,
+  ) async {
+    final controller = ScrollableTextController();
+    addTearDown(controller.dispose);
+
+    final text = _ReadingLine150VoiceScroll.text;
+    await tester.pumpWidget(
+      _prompter(controller, text, _ReadingLine150VoiceScroll.new),
+    );
+    // ~9000 px to cover from the top of the text, at up to 900 px/s.
+    for (var i = 0; i < 900; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+
+    final paragraphFinder = find.byWidgetPredicate(
+      (w) => w is RichText && w.text.toPlainText() == text,
+    );
+    final paragraph = tester.renderObject<RenderParagraph>(paragraphFinder);
+    final caret = paragraph.getOffsetForCaret(
+      TextPosition(offset: _ReadingLine150VoiceScroll.start),
+      Rect.zero,
+    );
+    final wordTopOnScreen = paragraph.localToGlobal(caret).dy;
+
+    // Test viewport: the whole 600 px high test screen; reading line at 8 %.
+    expect(wordTopOnScreen, closeTo(600 * 0.08, 2));
+  });
 
   testWidgets('voice-matched word is highlighted in the scrolling text', (
     tester,
