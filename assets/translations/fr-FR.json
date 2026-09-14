@@ -202,6 +202,8 @@
     "Camera_VideoSaved": "Vidéo enregistrée avec succès !",
     "Camera_Duration": "Durée",
     "Camera_ShareVideo": "Partager / Enregistrer la vidéo",
+    "Camera_SavedToGallery": "Copiée dans la galerie, album « Souffleur ».",
+    "Camera_NotSavedToGallery": "Pas dans la galerie : utilisez « Partager » pour la sauvegarder.",
     "Camera_Close": "Fermer la caméra",
     "Camera_Error": "Erreur de caméra",
     "Camera_AudioEnabled": "Microphone activé",

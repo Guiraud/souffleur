@@ -206,6 +206,8 @@
     "Camera_VideoSaved": "Video Recorded",
     "Camera_Duration": "Duration",
     "Camera_ShareVideo": "Share / Save Video",
+    "Camera_SavedToGallery": "Saved to the gallery, album \"Souffleur\".",
+    "Camera_NotSavedToGallery": "Not in the gallery: use Share to keep it.",
     "Camera_Close": "Close",
     "Camera_Error": "Camera Error",
     "Camera_AudioEnabled": "Microphone enabled",

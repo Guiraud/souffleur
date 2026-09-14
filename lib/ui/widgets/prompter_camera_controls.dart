@@ -13,11 +13,13 @@ Future<void> handleCameraRecording(BuildContext context, WidgetRef ref) async {
     final duration = cameraState.recordingDuration;
     final file = await ref.read(cameraProvider.notifier).stopRecording();
     if (file != null && context.mounted) {
+      final savedToGallery = ref.read(cameraProvider).lastSavedToGallery;
       showDialog(
         context: context,
         builder: (ctx) => RecordedVideoDialog(
           videoFile: file,
           duration: duration,
+          savedToGallery: savedToGallery,
         ),
       );
     }

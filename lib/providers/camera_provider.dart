@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:camera/camera.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tiefprompt/services/gallery_saver.dart';
 
 enum CameraPreviewMode {
   background, // Fullscreen behind prompter text
@@ -24,6 +25,8 @@ class CameraState {
   final XFile? lastRecordedFile;
   final DeviceOrientation? lockedOrientation;
   final bool isAudioEnabled;
+  // Whether the last recording was copied to the device gallery.
+  final bool lastSavedToGallery;
 
   const CameraState({
     this.isAvailable = true,
@@ -41,6 +44,7 @@ class CameraState {
     this.lastRecordedFile,
     this.lockedOrientation,
     this.isAudioEnabled = true,
+    this.lastSavedToGallery = false,
   });
 
   CameraState copyWith({
@@ -59,6 +63,7 @@ class CameraState {
     XFile? lastRecordedFile,
     DeviceOrientation? lockedOrientation,
     bool? isAudioEnabled,
+    bool? lastSavedToGallery,
     bool clearLockedOrientation = false,
     bool clearError = false,
     bool clearInfo = false,
@@ -80,9 +85,16 @@ class CameraState {
       lastRecordedFile: clearLastFile ? null : (lastRecordedFile ?? this.lastRecordedFile),
       lockedOrientation: clearLockedOrientation ? null : (lockedOrientation ?? this.lockedOrientation),
       isAudioEnabled: isAudioEnabled ?? this.isAudioEnabled,
+      lastSavedToGallery: lastSavedToGallery ?? this.lastSavedToGallery,
     );
   }
 }
+
+/// Copies a finished recording to the device gallery; resolves to false on
+/// platforms without one. Overridable in tests.
+final videoGallerySaverProvider = Provider<Future<bool> Function(String path)>(
+  (ref) => saveVideoToGallery,
+);
 
 class CameraNotifier extends Notifier<CameraState> {
   CameraController? _controller;
@@ -279,6 +291,7 @@ class CameraNotifier extends Notifier<CameraState> {
         isRecording: true,
         isPaused: false,
         recordingDuration: Duration.zero,
+        lastSavedToGallery: false,
         clearError: true,
       );
       _durationTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -305,6 +318,9 @@ class CameraNotifier extends Notifier<CameraState> {
         isPaused: false,
         lastRecordedFile: file,
       );
+      // Also when the camera is closed mid-recording, where no dialog offers
+      // to share the file: the plugin leaves it in the purgeable app cache.
+      await saveToGallery(file);
       return file;
     } catch (e) {
       state = state.copyWith(
@@ -313,6 +329,22 @@ class CameraNotifier extends Notifier<CameraState> {
         errorMessage: 'Failed to stop recording: $e',
       );
       return null;
+    }
+  }
+
+  /// Copies [file] to the gallery so the recording survives cache clean-ups.
+  Future<bool> saveToGallery(XFile file) async {
+    try {
+      final saved = await ref.read(videoGallerySaverProvider)(file.path);
+      state = state.copyWith(lastSavedToGallery: saved);
+      return saved;
+    } catch (e) {
+      state = state.copyWith(
+        lastSavedToGallery: false,
+        errorMessage:
+            'Vidéo non copiée dans la galerie ($e). Utilisez « Partager » pour la sauvegarder.',
+      );
+      return false;
     }
   }
 

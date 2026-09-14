@@ -5,11 +5,13 @@ import 'package:share_plus/share_plus.dart';
 class RecordedVideoDialog extends StatelessWidget {
   final XFile videoFile;
   final Duration duration;
+  final bool savedToGallery;
 
   const RecordedVideoDialog({
     super.key,
     required this.videoFile,
     required this.duration,
+    this.savedToGallery = false,
   });
 
   String _formatDuration(Duration d) {
@@ -45,12 +47,34 @@ class RecordedVideoDialog extends StatelessWidget {
             style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
-          Text(
-            videoFile.path,
-            style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+          Row(
+            children: [
+              Icon(
+                savedToGallery ? Icons.photo_library : Icons.warning_amber_rounded,
+                color: savedToGallery ? Colors.greenAccent : Colors.orangeAccent,
+                size: 18,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  savedToGallery
+                      ? context.tr('PrompterScreen.Camera_SavedToGallery')
+                      : context.tr('PrompterScreen.Camera_NotSavedToGallery'),
+                  style: theme.textTheme.bodyMedium,
+                ),
+              ),
+            ],
           ),
+          // The cache path is only useful while the file is not in the gallery.
+          if (!savedToGallery) ...[
+            const SizedBox(height: 8),
+            Text(
+              videoFile.path,
+              style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ],
       ),
       actions: [

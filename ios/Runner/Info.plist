@@ -27,7 +27,9 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This app may indirectly access your photo library via included SDKs.</string>
+	<string>Rangez vos vidéos enregistrées dans l'album « Souffleur » de la photothèque.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Enregistrez vos vidéos dans la photothèque.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Enregistrez une vidéo et voyez-vous pendant le défilement du prompteur.</string>
 	<key>NSMicrophoneUsageDescription</key>

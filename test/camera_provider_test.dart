@@ -1,3 +1,4 @@
+import 'package:camera/camera.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tiefprompt/providers/camera_provider.dart';
@@ -36,6 +37,30 @@ void main() {
 
       notifier.setBackgroundDim(-0.2);
       expect(container.read(cameraProvider).backgroundDim, 0.0);
+    });
+
+    test('saveToGallery records success and surfaces failures', () async {
+      var failing = false;
+      final container = ProviderContainer(
+        overrides: [
+          videoGallerySaverProvider.overrideWithValue((path) async {
+            if (failing) throw StateError('accès refusé');
+            return true;
+          }),
+        ],
+      );
+      addTearDown(container.dispose);
+      final notifier = container.read(cameraProvider.notifier);
+
+      expect(await notifier.saveToGallery(XFile('/cache/REC1.mp4')), isTrue);
+      expect(container.read(cameraProvider).lastSavedToGallery, isTrue);
+      expect(container.read(cameraProvider).errorMessage, isNull);
+
+      failing = true;
+      expect(await notifier.saveToGallery(XFile('/cache/REC2.mp4')), isFalse);
+      final state = container.read(cameraProvider);
+      expect(state.lastSavedToGallery, isFalse);
+      expect(state.errorMessage, contains('Partager'));
     });
 
     test('CameraState tracks isAudioEnabled and infoMessage', () {
