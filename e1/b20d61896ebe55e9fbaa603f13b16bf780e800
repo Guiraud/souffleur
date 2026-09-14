@@ -1,0 +1,56 @@
+lib/ui/widgets/prompter_camera_preview.dart
+  s_ca5ded91108744::t_2c52efc15abd86 62-81
+  s_ca5ded91108744::t_0e1f76f26c9c16 162
+  s_ca5ded91108744::t_505bfade086564 55
+test/voice_scroll_provider_test.dart
+  s_ca5ded91108744::t_3c38933eb16095 307-360
+lib/ui/screens/prompter_screen.dart
+  s_ca5ded91108744::t_2b7a8e03dc2d81 186-193
+test/scrollable_text_voice_test.dart
+  s_ca5ded91108744::t_d58f4de82970f1 55-72
+  s_ca5ded91108744::t_412e2e77181694 145-182
+lib/providers/voice_scroll_provider.dart
+  s_ca5ded91108744::t_ca6f679c1cbb1a 282-283
+  s_ca5ded91108744::t_3259af2a64e77a 299
+  s_ca5ded91108744::t_1d90fee48da522 656-669,671
+  s_ca5ded91108744::t_5f0982af08ecca 316
+  s_ca5ded91108744::t_28ffd159711446 682
+  s_ca5ded91108744::t_6b2f0217d5be3b 396-400
+  s_ca5ded91108744::t_1656176c7bc390 334
+  s_ca5ded91108744::t_1ce4b01ce46c99 799-829
+  s_ca5ded91108744::t_0639f4b393656c 440-448
+lib/ui/widgets/prompter_camera_controls.dart
+  s_ca5ded91108744::t_1dbc40e7b9408b 173-174
+  s_ca5ded91108744::t_43883b0ba135ac 200
+lib/ui/widgets/voice_scroll_banner.dart
+  s_ca5ded91108744::t_5227591e45b230 16-18
+  s_ca5ded91108744::t_6758f4f0fdb3a5 61-63
+pubspec.yaml
+  s_ca5ded91108744::t_82fb0040a9fb6e 19
+android/app/src/main/kotlin/io/github/tiefseetauchner/tiefprompt/VoiceFeed.kt
+  s_ca5ded91108744::t_126234e85fc341 246-256
+lib/ui/widgets/scrollable_text.dart
+  s_ca5ded91108744::t_8a373f3467d76c 301-309
+  s_ca5ded91108744::t_2e8b997d6048a9 443-446
+  s_ca5ded91108744::t_9d357174fb28e2 498-500
+  s_ca5ded91108744::t_196b8178ca0fe4 244-254
+  s_ca5ded91108744::t_c219d83573824a 85-90
+  s_ca5ded91108744::t_cb147e38222c01 38-44
+  s_ca5ded91108744::t_ce4c43e6a6ba7b 130
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "development:1.7.1",
+  "base_commit_sha": "e1b20d61896ebe55e9fbaa603f13b16bf780e800",
+  "prompts": {},
+  "sessions": {
+    "s_ca5ded91108744": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ca552085-0e94-4673-873b-c158c70eba5f",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Guiraud <mehdi.guiraud@gmail.com>"
+    }
+  }
+}
