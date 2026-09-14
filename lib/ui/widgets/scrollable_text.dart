@@ -95,6 +95,9 @@ class _ScrollableTextState extends ConsumerState<ScrollableText>
 
     _onReachedEnd = () {
       ref.read(prompterProvider.notifier).togglePlayPause();
+      if (ref.read(voiceScrollProvider).isListening) {
+        ref.read(voiceScrollProvider.notifier).stopListening();
+      }
     };
 
     _ticker = createTicker((Duration elapsed) {
@@ -105,6 +108,17 @@ class _ScrollableTextState extends ConsumerState<ScrollableText>
 
     _markdownController.addListener(_recomputeChapterOffsets);
     widget.controller.scrollController.addListener(_updateCurrentChapter);
+
+    // The ref.listen callbacks in build only fire on *changes*. If playback or
+    // voice tracking is already active when this widget is (re)created — e.g.
+    // the camera preview was inserted into the prompter Stack — nothing would
+    // ever start the ticker, so sync with the current state once mounted.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      // A drag interrupted by a rebuild never delivers its ScrollEndNotification.
+      ref.read(_userScrollingProvider.notifier).setValue(false);
+      _checkScrollingState();
+    });
   }
 
   @override
@@ -246,14 +260,40 @@ class _ScrollableTextState extends ConsumerState<ScrollableText>
       }
     } else {
       // User paused speaking (silence > 1.5s)
-      if (distance > 2.0) {
+      if (distance.abs() > 2.0) {
         // Smoothly settle to the target word
-        final settleSpeed = (distance * 2.5).clamp(15.0, 250.0);
-        final advance = (settleSpeed * deltaSeconds).clamp(0.0, distance);
+        final settleSpeed = (distance.abs() * 3.0).clamp(20.0, 350.0);
+        final step = settleSpeed * deltaSeconds;
+        final advance = distance > 0
+            ? step.clamp(0.0, distance)
+            : (-step).clamp(distance, 0.0);
         controller.jumpTo(currentPixels + advance);
       }
-      // When distance <= 2.0, completely paused!
+      // When distance.abs() <= 2.0, completely settled!
     }
+  }
+
+  TextSpan _highlightedText(({int start, int end})? highlight) {
+    final text = widget.text;
+    if (highlight == null ||
+        highlight.start < 0 ||
+        highlight.start >= highlight.end ||
+        highlight.end > text.length) {
+      return TextSpan(text: text);
+    }
+
+    // Only the colors change, so highlighting never reflows the text.
+    final accent = Theme.of(context).colorScheme.primary;
+    return TextSpan(
+      children: [
+        TextSpan(text: text.substring(0, highlight.start)),
+        TextSpan(
+          text: text.substring(highlight.start, highlight.end),
+          style: TextStyle(color: accent, backgroundColor: accent.withAlpha(60)),
+        ),
+        TextSpan(text: text.substring(highlight.end)),
+      ],
+    );
   }
 
   double _getScrollOffsetInLinesPerSecond(double speed) {
@@ -283,6 +323,29 @@ class _ScrollableTextState extends ConsumerState<ScrollableText>
       },
     );
 
+    ref.listen(
+      voiceScrollProvider.select((v) => v.realignTrigger),
+      (previous, next) {
+        if (next > (previous ?? 0) &&
+            widget.controller.scrollController.hasClients) {
+          final controller = widget.controller.scrollController;
+          final maxScroll = controller.position.maxScrollExtent;
+          final mediaH = _mediaHeight > 0 ? _mediaHeight : 800.0;
+          final textHeight = (maxScroll - mediaH).clamp(0.0, double.infinity);
+          final readingY = mediaH * 0.40;
+          final startScroll = mediaH - readingY;
+          final targetPixels = (startScroll +
+                  ref.read(voiceScrollProvider).scrollProgress * textHeight)
+              .clamp(0.0, maxScroll);
+          controller.animateTo(
+            targetPixels,
+            duration: const Duration(milliseconds: 350),
+            curve: Curves.easeOutCubic,
+          );
+        }
+      },
+    );
+
     final mediaHeight = MediaQuery.of(context).size.height;
     final mediaWidth = MediaQuery.of(context).size.width;
     _mediaHeight = mediaHeight;
@@ -304,6 +367,14 @@ class _ScrollableTextState extends ConsumerState<ScrollableText>
           showCurrentChapter: p.config.showCurrentChapter,
           alignment: p.config.alignment,
         ),
+      ),
+    );
+
+    final highlight = ref.watch(
+      voiceScrollProvider.select(
+        (v) => v.isListening
+            ? (start: v.highlightStart, end: v.highlightEnd)
+            : null,
       ),
     );
 
@@ -345,7 +416,13 @@ class _ScrollableTextState extends ConsumerState<ScrollableText>
                   width: renderWidth,
                 )
               else
-                Text(widget.text, style: widget.style, textAlign: alignment),
+                // The markdown renderer takes no per-word style, so the
+                // voice-matched word is only highlighted in plain-text mode.
+                Text.rich(
+                  _highlightedText(highlight),
+                  style: widget.style,
+                  textAlign: alignment,
+                ),
               SizedBox(
                 height: mediaHeight,
                 child: Center(child: Text("The End", style: widget.style)),

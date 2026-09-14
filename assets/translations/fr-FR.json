@@ -204,7 +204,10 @@
     "Camera_ShareVideo": "Partager / Enregistrer la vidéo",
     "Camera_Close": "Fermer la caméra",
     "Camera_Error": "Erreur de caméra",
+    "Camera_AudioEnabled": "Microphone activé",
+    "Camera_AudioDisabled": "Microphone désactivé (appuyez pour activer)",
     "VoiceScroll_Listening": "À l'écoute... parlez pour faire défiler le texte",
+    "VoiceScroll_WaitingText": "En attente du texte...",
     "VoiceScroll_Error": "Erreur de reconnaissance vocale",
     "SimpleDialog_TextFormat": {
       "title": "Police et texte",

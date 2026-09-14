@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:tiefprompt/providers/voice_scroll_provider.dart';
 
 void main() {
@@ -15,6 +16,7 @@ void main() {
       expect(state.speechRateWpm, 140.0);
       expect(state.currentWords, isEmpty);
       expect(state.errorMessage, isNull);
+      expect(state.infoMessage, isNull);
     });
 
     test('VoiceScrollNotifier initializes correctly in ProviderContainer', () {
@@ -145,6 +147,121 @@ void main() {
       );
       expect(match, isNotNull);
       expect(tokens[match!].normalized, 'maintenant');
+    });
+
+    test('wordsFuzzyEqual does not falsely match words sharing only 4-letter root', () {
+      expect(wordsFuzzyEqual('pour', 'pourquoi'), isFalse);
+      expect(wordsFuzzyEqual('part', 'particulier'), isFalse);
+      expect(wordsFuzzyEqual('jour', 'journaliste'), isFalse);
+      // Valid plurals/gender variations differing by at most 2 letters still match
+      expect(wordsFuzzyEqual('presentation', 'presentations'), isTrue);
+      expect(wordsFuzzyEqual('grand', 'grande'), isTrue);
+      expect(wordsFuzzyEqual('grand', 'grandes'), isTrue);
+    });
+
+    test('findMatchInScript does not jump on single French stop words', () {
+      const script = "Voici une phrase avec de nombreux mots et de la ponctuation.";
+      final tokens = tokenizeScript(script);
+
+      // Single stop word should not trigger a false match jump
+      final matchStopWord = findMatchInScript(
+        scriptTokens: tokens,
+        spokenNormWords: ['de'],
+        currentIndex: 0,
+      );
+      expect(matchStopWord, isNull);
+    });
+
+    test('handleSpeechError replaces audio timeout with informational waiting message', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final notifier = container.read(voiceScrollProvider.notifier);
+
+      // 1. error_speech_timeout
+      notifier.handleSpeechError(SpeechRecognitionError('error_speech_timeout', false));
+      var state = container.read(voiceScrollProvider);
+      expect(state.errorMessage, isNull);
+      expect(state.infoMessage, 'En attente du texte...');
+      expect(state.isSpeaking, isFalse);
+
+      // 2. error_audio
+      notifier.handleSpeechError(SpeechRecognitionError('error_audio', false));
+      state = container.read(voiceScrollProvider);
+      expect(state.errorMessage, isNull);
+      expect(state.infoMessage, 'En attente du texte...');
+
+      // 3. custom timeout audio message
+      notifier.handleSpeechError(SpeechRecognitionError('timeout audio', false));
+      state = container.read(voiceScrollProvider);
+      expect(state.errorMessage, isNull);
+      expect(state.infoMessage, 'En attente du texte...');
+
+      // 4. Permission error sets friendly French message
+      notifier.handleSpeechError(SpeechRecognitionError('error_permission', true));
+      state = container.read(voiceScrollProvider);
+      expect(state.errorMessage, 'Permission microphone requise pour le suivi vocal.');
+    });
+
+    test('handleSpeechError surfaces a persistent microphone failure once', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final notifier = container.read(voiceScrollProvider.notifier);
+      // Android reports ERROR_AUDIO as 'error_audio_error', always permanent.
+      final audioError = SpeechRecognitionError('error_audio_error', true);
+
+      notifier.handleSpeechError(audioError);
+      notifier.handleSpeechError(audioError);
+      expect(container.read(voiceScrollProvider).errorMessage, isNull);
+
+      notifier.handleSpeechError(audioError);
+      expect(
+        container.read(voiceScrollProvider).errorMessage,
+        contains('Microphone indisponible'),
+      );
+
+      // Not re-raised on every further retry (the screen clears it after display).
+      notifier.clearError();
+      notifier.handleSpeechError(audioError);
+      expect(container.read(voiceScrollProvider).errorMessage, isNull);
+    });
+
+    test('pickFrenchLocaleId prefers France French over other variants', () {
+      // Recognizers list variants alphabetically, so fr-BE comes first.
+      expect(
+        pickFrenchLocaleId(['en-US', 'fr-BE', 'fr-CA', 'fr-FR']),
+        'fr-FR',
+      );
+      expect(pickFrenchLocaleId(['fr_BE', 'fr_FR']), 'fr_FR');
+      expect(
+        pickFrenchLocaleId(['fr-BE', 'fr-CH'], systemLocaleId: 'fr-CH'),
+        'fr-CH',
+      );
+      expect(pickFrenchLocaleId(['en-US', 'fr-CA']), 'fr-CA');
+      expect(pickFrenchLocaleId(['en-US']), 'fr_FR');
+    });
+
+    test('normalizeSoundLevel maps recognizer RMS dB to 0..1', () {
+      expect(normalizeSoundLevel(-10), 0.0);
+      expect(normalizeSoundLevel(-2), 0.0);
+      expect(normalizeSoundLevel(4), closeTo(0.5, 1e-9));
+      expect(normalizeSoundLevel(10), 1.0);
+      expect(normalizeSoundLevel(20), 1.0);
+    });
+
+    test('realignToLastMatch increments realignTrigger', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final notifier = container.read(voiceScrollProvider.notifier);
+      expect(container.read(voiceScrollProvider).realignTrigger, 0);
+
+      notifier.realignToLastMatch();
+      expect(container.read(voiceScrollProvider).realignTrigger, 1);
+
+      notifier.realignToLastMatch();
+      expect(container.read(voiceScrollProvider).realignTrigger, 2);
     });
   });
 }

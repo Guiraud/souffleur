@@ -14,6 +14,8 @@ void main() {
       expect(state.backgroundDim, 0.35);
       expect(state.recordingDuration, Duration.zero);
       expect(state.errorMessage, isNull);
+      expect(state.infoMessage, isNull);
+      expect(state.isAudioEnabled, isTrue);
     });
 
     test('CameraNotifier toggles preview modes and background dim', () {
@@ -34,6 +36,23 @@ void main() {
 
       notifier.setBackgroundDim(-0.2);
       expect(container.read(cameraProvider).backgroundDim, 0.0);
+    });
+
+    test('CameraState tracks isAudioEnabled and infoMessage', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final notifier = container.read(cameraProvider.notifier);
+      final state = const CameraState().copyWith(
+        isAudioEnabled: false,
+        infoMessage: "Caméra et microphone activés pour l'enregistrement.",
+      );
+
+      expect(state.isAudioEnabled, isFalse);
+      expect(state.infoMessage, "Caméra et microphone activés pour l'enregistrement.");
+
+      notifier.clearInfo();
+      expect(container.read(cameraProvider).infoMessage, isNull);
     });
   });
 }

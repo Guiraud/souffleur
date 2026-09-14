@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speech_to_text/speech_to_text.dart';
+import 'package:speech_to_text/speech_recognition_error.dart';
+import 'package:tiefprompt/services/voice_feed.dart';
 
 class ScriptToken {
   final String raw;
@@ -73,13 +75,23 @@ List<String> tokenizeSpoken(String text) {
   return words;
 }
 
+/// French stop words that should not trigger single-word tracking jumps
+const Set<String> _frenchStopWords = {
+  'le', 'la', 'les', 'de', 'du', 'des', 'un', 'une',
+  'et', 'en', 'ce', 'ces', 'au', 'aux', 'se', 'sa',
+  'son', 'ses', 'si', 'on', 'ou', 'ne', 'pas', 'que',
+  'qui', 'dans', 'sur', 'par', 'a', 'y',
+};
+
 /// Compares two normalized words with fuzzy tolerance (stem/prefix matching, edit distance).
 bool wordsFuzzyEqual(String normA, String normB) {
   if (normA == normB) return true;
   if (normA.isEmpty || normB.isEmpty) return false;
 
-  // Prefix matching if one word starts with the other (e.g. plural: 'presentation' vs 'presentations')
-  if (normA.length >= 4 && normB.length >= 4) {
+  // Prefix matching if one word starts with the other with small length difference (e.g. plural: 'presentation' vs 'presentations')
+  if (normA.length >= 4 &&
+      normB.length >= 4 &&
+      (normA.length - normB.length).abs() <= 2) {
     if (normA.startsWith(normB) || normB.startsWith(normA)) {
       return true;
     }
@@ -150,12 +162,12 @@ int? findMatchInScript({
     }
   }
 
-  // 2. Single-word search from tail (check last 2 spoken words, min length 2)
+  // 2. Single-word search from tail (check last 2 spoken words, min length 3, excluding stopwords)
   for (int i = spokenNormWords.length - 1;
       i >= 0 && i >= spokenNormWords.length - 2;
       i--) {
     final word = spokenNormWords[i];
-    if (word.length >= 2) {
+    if (word.length >= 3 && !_frenchStopWords.contains(word)) {
       final match = _searchSingleWord(scriptTokens, word, currentIndex);
       if (match != null) return match;
     }
@@ -164,7 +176,7 @@ int? findMatchInScript({
   // 3. Global phrase search if speaker jumped ahead or restarted (3-word phrase)
   if (spokenNormWords.length >= 3) {
     final phrase = spokenNormWords.sublist(spokenNormWords.length - 3);
-    final globalMatch = _searchGlobalPhrase(scriptTokens, phrase);
+    final globalMatch = _searchGlobalPhrase(scriptTokens, phrase, currentIndex);
     if (globalMatch != null) return globalMatch;
   }
 
@@ -210,7 +222,14 @@ int? _searchSingleWord(
   return null;
 }
 
-int? _searchGlobalPhrase(List<ScriptToken> script, List<String> phrase) {
+int? _searchGlobalPhrase(
+  List<ScriptToken> script,
+  List<String> phrase,
+  int currentIndex,
+) {
+  int? bestMatch;
+  int bestDistance = 999999;
+
   for (int i = 0; i <= script.length - phrase.length; i++) {
     bool matched = true;
     for (int j = 0; j < phrase.length; j++) {
@@ -220,10 +239,18 @@ int? _searchGlobalPhrase(List<ScriptToken> script, List<String> phrase) {
       }
     }
     if (matched) {
-      return i + phrase.length - 1;
+      final matchEnd = i + phrase.length - 1;
+      // Prefer forward progression slightly by weighting backward jumps more heavily
+      final distance = matchEnd >= currentIndex
+          ? matchEnd - currentIndex
+          : (currentIndex - matchEnd) * 2;
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        bestMatch = matchEnd;
+      }
     }
   }
-  return null;
+  return bestMatch;
 }
 
 class VoiceScrollState {
@@ -236,6 +263,11 @@ class VoiceScrollState {
   final bool isSpeaking; // true when words are actively detected (<1.5s ago)
   final double speechRateWpm; // detected words per minute
   final String? errorMessage;
+  final String? infoMessage;
+  final int realignTrigger;
+  // Character range in the script of the last matched word, -1 when none.
+  final int highlightStart;
+  final int highlightEnd;
 
   const VoiceScrollState({
     this.isAvailable = true,
@@ -247,6 +279,10 @@ class VoiceScrollState {
     this.isSpeaking = false,
     this.speechRateWpm = 140.0,
     this.errorMessage,
+    this.infoMessage,
+    this.realignTrigger = 0,
+    this.highlightStart = -1,
+    this.highlightEnd = -1,
   });
 
   VoiceScrollState copyWith({
@@ -259,7 +295,12 @@ class VoiceScrollState {
     bool? isSpeaking,
     double? speechRateWpm,
     String? errorMessage,
+    String? infoMessage,
+    int? realignTrigger,
+    int? highlightStart,
+    int? highlightEnd,
     bool clearError = false,
+    bool clearInfo = false,
   }) {
     return VoiceScrollState(
       isAvailable: isAvailable ?? this.isAvailable,
@@ -271,9 +312,48 @@ class VoiceScrollState {
       isSpeaking: isSpeaking ?? this.isSpeaking,
       speechRateWpm: speechRateWpm ?? this.speechRateWpm,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      infoMessage: clearInfo ? null : (infoMessage ?? this.infoMessage),
+      realignTrigger: realignTrigger ?? this.realignTrigger,
+      highlightStart: highlightStart ?? this.highlightStart,
+      highlightEnd: highlightEnd ?? this.highlightEnd,
     );
   }
 }
+
+/// Picks the recognition locale: France French first (the Belgian, Swiss or
+/// Canadian variants listed before it often have no installed model), then the
+/// system locale when it is French, then any French variant.
+String pickFrenchLocaleId(List<String> localeIds, {String? systemLocaleId}) {
+  String norm(String id) => id.replaceAll('-', '_').toLowerCase();
+  for (final id in localeIds) {
+    if (norm(id) == 'fr_fr') return id;
+  }
+  if (systemLocaleId != null && norm(systemLocaleId).startsWith('fr')) {
+    return systemLocaleId;
+  }
+  for (final id in localeIds) {
+    if (norm(id).startsWith('fr')) return id;
+  }
+  return 'fr_FR';
+}
+
+/// Maps the recognizer's RMS level (Android: roughly -2..10 dB) to 0..1.
+double normalizeSoundLevel(double rmsDb) =>
+    ((rmsDb + 2) / 12).clamp(0.0, 1.0);
+
+/// Microphone input level (0..1) of the running recognition session. Kept out
+/// of [VoiceScrollState] so its frequent updates only rebuild the level meter.
+class VoiceSoundLevelNotifier extends Notifier<double> {
+  @override
+  double build() => 0.0;
+
+  void set(double level) => state = level;
+}
+
+final voiceSoundLevelProvider =
+    NotifierProvider<VoiceSoundLevelNotifier, double>(
+      VoiceSoundLevelNotifier.new,
+    );
 
 class VoiceScrollNotifier extends Notifier<VoiceScrollState> {
   final SpeechToText _speechToText = SpeechToText();
@@ -286,6 +366,12 @@ class VoiceScrollNotifier extends Notifier<VoiceScrollState> {
   Timer? _restartTimer;
   DateTime? _lastMatchTime;
   double _currentWpm = 140.0;
+  int _consecutiveAudioErrors = 0;
+
+  // Android 13+: recognition fed by the app's own mic capture (VoiceFeed),
+  // which keeps working while the camera records sound.
+  bool _usingFeed = false;
+  StreamSubscription<VoiceFeedEvent>? _feedSub;
 
   @override
   VoiceScrollState build() {
@@ -297,22 +383,93 @@ class VoiceScrollNotifier extends Notifier<VoiceScrollState> {
     return const VoiceScrollState();
   }
 
+  void handleSpeechError(SpeechRecognitionError val) {
+    final errorMsg = val.errorMsg.toLowerCase();
+    // val.permanent is not used: the Android plugin flags every error as
+    // permanent, including benign timeouts.
+
+    // error_audio(_error): the recognizer could not capture the microphone
+    // (e.g. held by the camera while recording). Keep retrying, but surface it
+    // once when it persists instead of passing a dead mic off as silence.
+    if (errorMsg.contains('error_audio')) {
+      _consecutiveAudioErrors++;
+      if (_consecutiveAudioErrors == 3) {
+        state = state.copyWith(
+          errorMessage:
+              'Microphone indisponible pour le suivi vocal (utilisé par la caméra ?).',
+          isSpeaking: false,
+        );
+      } else {
+        state = state.copyWith(
+          clearError: true,
+          infoMessage: 'En attente du texte...',
+          isSpeaking: false,
+        );
+      }
+      _scheduleRestartListening(
+        delayMs: _consecutiveAudioErrors >= 3 ? 1500 : 300,
+      );
+      return;
+    }
+
+    // Speech timeout, silence, or no match are normal waiting conditions in speech recognition
+    final isTimeoutOrSilence = errorMsg.contains('timeout') ||
+        errorMsg.contains('no_match') ||
+        errorMsg.contains('speech_timeout') ||
+        errorMsg.contains('pas de parole') ||
+        errorMsg.contains('silence');
+
+    final isBusy = errorMsg.contains('busy');
+
+    if (isTimeoutOrSilence) {
+      // Instead of an error, replace with an info message waiting for text/speech
+      state = state.copyWith(
+        clearError: true,
+        infoMessage: 'En attente du texte...',
+        isSpeaking: false,
+      );
+      // Seamlessly restart listening so voice tracking continues when user speaks again
+      _scheduleRestartListening(delayMs: 300);
+      return;
+    }
+
+    if (isBusy) {
+      _scheduleRestartListening(delayMs: 400);
+      return;
+    }
+
+    String displayError = val.errorMsg;
+    if (errorMsg.contains('permission')) {
+      displayError = 'Permission microphone requise pour le suivi vocal.';
+    }
+
+    state = state.copyWith(
+      errorMessage: displayError,
+      isSpeaking: false,
+    );
+  }
+
+  void _scheduleRestartListening({int delayMs = 200}) {
+    if (!state.isListening) return;
+    _restartTimer?.cancel();
+    _restartTimer = Timer(Duration(milliseconds: delayMs), () {
+      if (state.isListening) {
+        _restartListening();
+      }
+    });
+  }
+
   Future<void> _ensureInitialized() async {
     if (_speechInitialized) return;
     try {
       _speechInitialized = await _speechToText.initialize(
         onError: (val) {
-          state = state.copyWith(errorMessage: val.errorMsg);
+          handleSpeechError(val);
         },
         onStatus: (status) {
           if (status == 'done' || status == 'notListening') {
             if (state.isListening && _speechToText.isAvailable) {
-              _restartTimer?.cancel();
-              _restartTimer = Timer(const Duration(milliseconds: 150), () {
-                if (state.isListening) {
-                  _restartListening();
-                }
-              });
+              _scheduleRestartListening(delayMs: 200);
             }
           }
         },
@@ -330,40 +487,61 @@ class VoiceScrollNotifier extends Notifier<VoiceScrollState> {
   Future<String> _resolveFrenchLocale() async {
     try {
       final locales = await _speechToText.locales();
-      for (final loc in locales) {
-        if (loc.localeId.toLowerCase().startsWith('fr')) {
-          return loc.localeId;
-        }
-      }
+      final system = await _speechToText.systemLocale();
+      return pickFrenchLocaleId(
+        [for (final loc in locales) loc.localeId],
+        systemLocaleId: system?.localeId,
+      );
     } catch (_) {}
     return 'fr_FR';
   }
 
+  /// Shared by the initial listen and every restart so both stay in sync.
+  /// A long silence window and session keep the recognizer from cutting the
+  /// session on every breath; the restart loop covers what is left.
+  SpeechListenOptions get _listenOptions => SpeechListenOptions(
+    listenMode: ListenMode.dictation,
+    partialResults: true,
+    cancelOnError: false,
+    localeId: _selectedLocaleId,
+    // Android caps the silence window at 10 s.
+    pauseFor: const Duration(seconds: 10),
+    listenFor: const Duration(minutes: 10),
+  );
+
   void _restartListening() {
-    if (!state.isListening) return;
+    // The native feed restarts its own sessions.
+    if (!state.isListening || _usingFeed) return;
     try {
+      // The plugin can still report a session that is winding down; retry
+      // later instead of giving up, otherwise tracking silently dies.
+      if (_speechToText.isListening) {
+        _scheduleRestartListening(delayMs: 400);
+        return;
+      }
       _speechToText.listen(
         onResult: (result) {
           _onSpeechResult(result.recognizedWords);
         },
-        listenOptions: SpeechListenOptions(
-          listenMode: ListenMode.dictation,
-          partialResults: true,
-          cancelOnError: false,
-          localeId: _selectedLocaleId,
-        ),
+        onSoundLevelChange: _onSoundLevel,
+        listenOptions: _listenOptions,
       );
-    } catch (_) {}
+    } catch (_) {
+      _scheduleRestartListening(delayMs: 500);
+    }
   }
 
   Future<void> startListening(String scriptText, {String? localeId}) async {
-    await _ensureInitialized();
-    if (!_speechInitialized) {
-      state = state.copyWith(
-        isListening: false,
-        errorMessage: 'Reconnaissance vocale non disponible sur cet appareil.',
-      );
-      return;
+    _usingFeed = await VoiceFeed.isSupported();
+    if (!_usingFeed) {
+      await _ensureInitialized();
+      if (!_speechInitialized) {
+        state = state.copyWith(
+          isListening: false,
+          errorMessage: 'Reconnaissance vocale non disponible sur cet appareil.',
+        );
+        return;
+      }
     }
 
     _scriptTextLength = scriptText.length;
@@ -376,7 +554,8 @@ class VoiceScrollNotifier extends Notifier<VoiceScrollState> {
       return;
     }
 
-    _selectedLocaleId = localeId ?? await _resolveFrenchLocale();
+    _selectedLocaleId =
+        localeId ?? (_usingFeed ? 'fr-FR' : await _resolveFrenchLocale());
 
     state = state.copyWith(
       isListening: true,
@@ -387,23 +566,29 @@ class VoiceScrollNotifier extends Notifier<VoiceScrollState> {
       totalWords: _scriptTokens.length,
       speechRateWpm: 140.0,
       clearError: true,
+      infoMessage: 'En attente du texte...',
+      highlightStart: -1,
+      highlightEnd: -1,
     );
 
     _lastMatchTime = null;
     _currentWpm = 140.0;
+    _consecutiveAudioErrors = 0;
 
     try {
-      await _speechToText.listen(
-        onResult: (result) {
-          _onSpeechResult(result.recognizedWords);
-        },
-        listenOptions: SpeechListenOptions(
-          listenMode: ListenMode.dictation,
-          partialResults: true,
-          cancelOnError: false,
-          localeId: _selectedLocaleId,
-        ),
-      );
+      if (_usingFeed) {
+        await _feedSub?.cancel();
+        _feedSub = VoiceFeed.events.listen(_onFeedEvent);
+        await VoiceFeed.start(_selectedLocaleId);
+      } else {
+        await _speechToText.listen(
+          onResult: (result) {
+            _onSpeechResult(result.recognizedWords);
+          },
+          onSoundLevelChange: _onSoundLevel,
+          listenOptions: _listenOptions,
+        );
+      }
     } catch (e) {
       state = state.copyWith(
         isListening: false,
@@ -412,7 +597,26 @@ class VoiceScrollNotifier extends Notifier<VoiceScrollState> {
     }
   }
 
+  void _onFeedEvent(VoiceFeedEvent event) {
+    switch (event.type) {
+      case 'partial' || 'final':
+        final text = event.text;
+        if (text != null) _onSpeechResult(text);
+      case 'level':
+        ref.read(voiceSoundLevelProvider.notifier).set(event.value ?? 0.0);
+      case 'error':
+        handleSpeechError(
+          SpeechRecognitionError(event.text ?? 'error_unknown', false),
+        );
+    }
+  }
+
+  void _onSoundLevel(double level) {
+    ref.read(voiceSoundLevelProvider.notifier).set(normalizeSoundLevel(level));
+  }
+
   void _onSpeechResult(String recognizedWords) {
+    _consecutiveAudioErrors = 0;
     if (recognizedWords.isEmpty || _scriptTokens.isEmpty) return;
 
     final spokenWords = tokenizeSpoken(recognizedWords);
@@ -436,8 +640,10 @@ class VoiceScrollNotifier extends Notifier<VoiceScrollState> {
           _currentWpm = _currentWpm * 0.7 + instantWpm * 0.3;
         }
       }
+      _lastMatchTime = now;
+    } else if (match != null) {
+      _lastMatchTime = now;
     }
-    _lastMatchTime = now;
 
     // Reset silence timer: user is speaking, will revert to silent after 1.5s of inactivity
     _silenceTimer?.cancel();
@@ -456,11 +662,15 @@ class VoiceScrollNotifier extends Notifier<VoiceScrollState> {
         scrollProgress: progress,
         isSpeaking: true,
         speechRateWpm: _currentWpm,
+        highlightStart: charOffset,
+        highlightEnd: charOffset + _scriptTokens[match].raw.length,
+        clearInfo: true,
       );
     } else {
       state = state.copyWith(
         currentWords: recognizedWords,
         isSpeaking: true,
+        clearInfo: true,
       );
     }
   }
@@ -468,6 +678,14 @@ class VoiceScrollNotifier extends Notifier<VoiceScrollState> {
   Future<void> _stopSpeech() async {
     _silenceTimer?.cancel();
     _restartTimer?.cancel();
+    if (_usingFeed) {
+      await _feedSub?.cancel();
+      _feedSub = null;
+      try {
+        await VoiceFeed.stop();
+      } catch (_) {}
+      return;
+    }
     try {
       await _speechToText.stop();
     } catch (_) {}
@@ -478,7 +696,10 @@ class VoiceScrollNotifier extends Notifier<VoiceScrollState> {
     state = state.copyWith(
       isListening: false,
       isSpeaking: false,
+      highlightStart: -1,
+      highlightEnd: -1,
     );
+    ref.read(voiceSoundLevelProvider.notifier).set(0.0);
   }
 
   void toggleVoiceScroll(String scriptText, {String? localeId}) {
@@ -498,8 +719,16 @@ class VoiceScrollNotifier extends Notifier<VoiceScrollState> {
     );
   }
 
+  void realignToLastMatch() {
+    state = state.copyWith(realignTrigger: state.realignTrigger + 1);
+  }
+
   void clearError() {
     state = state.copyWith(clearError: true);
+  }
+
+  void clearInfo() {
+    state = state.copyWith(clearInfo: true);
   }
 }
 

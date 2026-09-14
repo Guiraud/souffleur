@@ -86,6 +86,53 @@ class PrompterCameraControlsOverlay extends ConsumerWidget {
                       letterSpacing: 0.8,
                     ),
                   ),
+                  const SizedBox(width: 8),
+                  Icon(
+                    cameraState.isAudioEnabled ? Icons.mic : Icons.mic_off,
+                    color: cameraState.isAudioEnabled
+                        ? Colors.tealAccent
+                        : Colors.orangeAccent,
+                    size: 16,
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+        // Prominent warning badge if microphone is not active when filming
+        if (!cameraState.isAudioEnabled)
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeInOut,
+            top: topOffset + (cameraState.isRecording ? 48.0 : 0.0),
+            left: isPortrait ? 16 : (safeArea.left + 16),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade900.withValues(alpha: 0.9),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.orangeAccent, width: 1.2),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black45,
+                    blurRadius: 4,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.mic_off, color: Colors.white, size: 16),
+                  SizedBox(width: 6),
+                  Text(
+                    'Microphone non activé',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -232,6 +279,23 @@ class PrompterCameraControlsOverlay extends ConsumerWidget {
           tooltip: context.tr('PrompterScreen.Camera_Dimmer'),
           onPressed: () => _showDimmerSheet(context, ref),
         ),
+
+      // Microphone status & toggle
+      IconButton(
+        icon: Icon(
+          cameraState.isAudioEnabled ? Icons.mic : Icons.mic_off,
+          color: cameraState.isAudioEnabled
+              ? Colors.tealAccent
+              : Colors.orangeAccent,
+          size: 22,
+        ),
+        tooltip: cameraState.isAudioEnabled
+            ? context.tr('PrompterScreen.Camera_AudioEnabled')
+            : context.tr('PrompterScreen.Camera_AudioDisabled'),
+        onPressed: cameraState.isRecording
+            ? null
+            : () => ref.read(cameraProvider.notifier).toggleAudio(),
+      ),
 
       // Close camera button
       IconButton(

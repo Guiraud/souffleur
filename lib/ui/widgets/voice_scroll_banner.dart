@@ -11,6 +11,15 @@ class VoiceScrollBanner extends ConsumerWidget {
     final voiceState = ref.watch(voiceScrollProvider);
     if (!voiceState.isListening) return const SizedBox.shrink();
 
+    // The recognized word is highlighted in the text itself; the banner only
+    // reports status and the microphone level.
+    final status = voiceState.isSpeaking
+        ? 'Vitesse vocale : ~${voiceState.speechRateWpm.round()} mots/min'
+        : (voiceState.matchedWordIndex > 0
+              ? 'Reprenez votre lecture pour faire défiler'
+              : (voiceState.infoMessage ??
+                    context.tr('PrompterScreen.VoiceScroll_Listening')));
+
     return Positioned(
       bottom: 80,
       left: 20,
@@ -45,37 +54,63 @@ class VoiceScrollBanner extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      voiceState.currentWords.isNotEmpty
-                          ? voiceState.currentWords
-                          : context.tr('PrompterScreen.VoiceScroll_Listening'),
+                      status,
                       style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                        fontStyle: voiceState.currentWords.isNotEmpty
+                        color: voiceState.isSpeaking
+                            ? Colors.tealAccent
+                            : Colors.white,
+                        fontSize: 12,
+                        fontStyle: voiceState.isSpeaking
                             ? FontStyle.normal
                             : FontStyle.italic,
-                        fontWeight: voiceState.isSpeaking
-                            ? FontWeight.w600
-                            : FontWeight.normal,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    if (voiceState.isListening && voiceState.matchedWordIndex > 0)
-                      Text(
-                        voiceState.isSpeaking
-                            ? 'Vitesse vocale : ~${voiceState.speechRateWpm.round()} mots/min'
-                            : 'En pause (reprenez la parole pour faire défiler)',
-                        style: TextStyle(
-                          color: voiceState.isSpeaking
-                              ? Colors.tealAccent
-                              : Colors.white60,
-                          fontSize: 10,
-                        ),
-                      ),
+                    const SizedBox(height: 4),
+                    const _MicLevelMeter(),
                   ],
                 ),
               ),
+              if (voiceState.matchedWordIndex > 0) ...[
+                const SizedBox(width: 8),
+                InkWell(
+                  onTap: () =>
+                      ref.read(voiceScrollProvider.notifier).realignToLastMatch(),
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.teal.withValues(alpha: 0.25),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Colors.tealAccent.withValues(alpha: 0.6),
+                        width: 1,
+                      ),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.center_focus_strong,
+                          color: Colors.tealAccent,
+                          size: 13,
+                        ),
+                        SizedBox(width: 4),
+                        Text(
+                          'Recaler',
+                          style: TextStyle(
+                            color: Colors.tealAccent,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(width: 8),
               GestureDetector(
                 onTap: () =>
@@ -84,6 +119,29 @@ class VoiceScrollBanner extends ConsumerWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Live microphone level of the recognition session. A flat bar while
+/// speaking means the recognizer gets no audio (e.g. the camera holds the mic).
+class _MicLevelMeter extends ConsumerWidget {
+  const _MicLevelMeter();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final level = ref.watch(voiceSoundLevelProvider);
+    return SizedBox(
+      width: 140,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(3),
+        child: LinearProgressIndicator(
+          value: level,
+          minHeight: 5,
+          backgroundColor: Colors.white12,
+          color: level > 0.15 ? Colors.tealAccent : Colors.white38,
         ),
       ),
     );

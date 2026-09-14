@@ -127,11 +127,38 @@ class _PrompterScreenState extends ConsumerState<PrompterScreen> {
           next.errorMessage != previous?.errorMessage) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(next.errorMessage!),
+            content: Row(
+              children: [
+                const Icon(Icons.warning_amber_rounded,
+                    color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                Expanded(child: Text(next.errorMessage!)),
+              ],
+            ),
             backgroundColor: Colors.redAccent,
+            duration: const Duration(seconds: 4),
+            behavior: SnackBarBehavior.floating,
           ),
         );
         ref.read(cameraProvider.notifier).clearError();
+      }
+      if (next.infoMessage != null &&
+          next.infoMessage != previous?.infoMessage) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.mic, color: Colors.tealAccent, size: 20),
+                const SizedBox(width: 8),
+                Expanded(child: Text(next.infoMessage!)),
+              ],
+            ),
+            backgroundColor: const Color(0xFF1E1E1E),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        ref.read(cameraProvider.notifier).clearInfo();
       }
     });
 
@@ -153,6 +180,9 @@ class _PrompterScreenState extends ConsumerState<PrompterScreen> {
                 cameraState.previewMode == CameraPreviewMode.background)
               const PrompterCameraBackgroundPreview(),
             GestureDetector(
+              // Keyed so the conditional camera preview above does not shift
+              // this child and recreate ScrollableText (and its ticker).
+              key: const ValueKey('prompter-scrollable-text'),
               onTap: () {
                 ref.read(controlsVisibleProvider.notifier).toggle();
               },

@@ -208,7 +208,10 @@
     "Camera_ShareVideo": "Share / Save Video",
     "Camera_Close": "Close",
     "Camera_Error": "Camera Error",
+    "Camera_AudioEnabled": "Microphone enabled",
+    "Camera_AudioDisabled": "Microphone disabled (tap to enable)",
     "VoiceScroll_Listening": "Listening... Speak to scroll text",
+    "VoiceScroll_WaitingText": "Waiting for text...",
     "VoiceScroll_Error": "Voice Tracking Error",
     "SimpleDialog_TextFormat": {
       "title": "Font Settings",

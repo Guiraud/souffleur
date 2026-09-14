@@ -20,8 +20,10 @@ class CameraState {
   final int selectedCameraIndex;
   final List<CameraDescription> availableCameras;
   final String? errorMessage;
+  final String? infoMessage;
   final XFile? lastRecordedFile;
   final DeviceOrientation? lockedOrientation;
+  final bool isAudioEnabled;
 
   const CameraState({
     this.isAvailable = true,
@@ -35,8 +37,10 @@ class CameraState {
     this.selectedCameraIndex = 0,
     this.availableCameras = const [],
     this.errorMessage,
+    this.infoMessage,
     this.lastRecordedFile,
     this.lockedOrientation,
+    this.isAudioEnabled = true,
   });
 
   CameraState copyWith({
@@ -51,10 +55,13 @@ class CameraState {
     int? selectedCameraIndex,
     List<CameraDescription>? availableCameras,
     String? errorMessage,
+    String? infoMessage,
     XFile? lastRecordedFile,
     DeviceOrientation? lockedOrientation,
+    bool? isAudioEnabled,
     bool clearLockedOrientation = false,
     bool clearError = false,
+    bool clearInfo = false,
     bool clearLastFile = false,
   }) {
     return CameraState(
@@ -69,8 +76,10 @@ class CameraState {
       selectedCameraIndex: selectedCameraIndex ?? this.selectedCameraIndex,
       availableCameras: availableCameras ?? this.availableCameras,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      infoMessage: clearInfo ? null : (infoMessage ?? this.infoMessage),
       lastRecordedFile: clearLastFile ? null : (lastRecordedFile ?? this.lastRecordedFile),
       lockedOrientation: clearLockedOrientation ? null : (lockedOrientation ?? this.lockedOrientation),
+      isAudioEnabled: isAudioEnabled ?? this.isAudioEnabled,
     );
   }
 }
@@ -132,8 +141,9 @@ class CameraNotifier extends Notifier<CameraState> {
 
   Future<void> _initializeController(
     List<CameraDescription> cameras,
-    int cameraIndex,
-  ) async {
+    int cameraIndex, {
+    bool enableAudio = true,
+  }) async {
     await _controller?.dispose();
     _controller = null;
 
@@ -141,7 +151,7 @@ class CameraNotifier extends Notifier<CameraState> {
     CameraController newController = CameraController(
       camera,
       ResolutionPreset.high,
-      enableAudio: true,
+      enableAudio: enableAudio,
     );
 
     try {
@@ -151,35 +161,52 @@ class CameraNotifier extends Notifier<CameraState> {
         isAvailable: true,
         isInitialized: true,
         isEnabled: true,
+        isAudioEnabled: enableAudio,
         availableCameras: cameras,
         selectedCameraIndex: cameraIndex,
         clearError: true,
+        infoMessage: enableAudio
+            ? "Caméra et microphone activés pour l'enregistrement."
+            : null,
       );
     } catch (e) {
-      // If audio permission or initialization failed, retry without audio
-      try {
-        await newController.dispose();
-        newController = CameraController(
-          camera,
-          ResolutionPreset.high,
-          enableAudio: false,
-        );
-        await newController.initialize();
-        _controller = newController;
-        state = state.copyWith(
-          isAvailable: true,
-          isInitialized: true,
-          isEnabled: true,
-          availableCameras: cameras,
-          selectedCameraIndex: cameraIndex,
-          errorMessage: 'Audio recording disabled: ${e.toString()}',
-        );
-      } catch (retryError) {
+      if (enableAudio) {
+        // If audio permission or initialization failed, retry without audio
+        try {
+          await newController.dispose();
+          newController = CameraController(
+            camera,
+            ResolutionPreset.high,
+            enableAudio: false,
+          );
+          await newController.initialize();
+          _controller = newController;
+          state = state.copyWith(
+            isAvailable: true,
+            isInitialized: true,
+            isEnabled: true,
+            isAudioEnabled: false,
+            availableCameras: cameras,
+            selectedCameraIndex: cameraIndex,
+            errorMessage:
+                "Attention : Le microphone n'est pas activé. La vidéo sera enregistrée sans le son.",
+          );
+        } catch (retryError) {
+          await newController.dispose();
+          state = state.copyWith(
+            isInitialized: false,
+            isEnabled: false,
+            isAudioEnabled: false,
+            errorMessage: retryError.toString(),
+          );
+        }
+      } else {
         await newController.dispose();
         state = state.copyWith(
           isInitialized: false,
           isEnabled: false,
-          errorMessage: retryError.toString(),
+          isAudioEnabled: false,
+          errorMessage: e.toString(),
         );
       }
     }
@@ -191,7 +218,21 @@ class CameraNotifier extends Notifier<CameraState> {
 
     final nextIndex =
         (state.selectedCameraIndex + 1) % state.availableCameras.length;
-    await _initializeController(state.availableCameras, nextIndex);
+    await _initializeController(
+      state.availableCameras,
+      nextIndex,
+      enableAudio: state.isAudioEnabled,
+    );
+  }
+
+  Future<void> toggleAudio() async {
+    if (state.availableCameras.isEmpty || state.isRecording) return;
+    final nextAudio = !state.isAudioEnabled;
+    await _initializeController(
+      state.availableCameras,
+      state.selectedCameraIndex,
+      enableAudio: nextAudio,
+    );
   }
 
   Future<void> disableCamera() async {
@@ -350,6 +391,10 @@ class CameraNotifier extends Notifier<CameraState> {
 
   void clearError() {
     state = state.copyWith(clearError: true);
+  }
+
+  void clearInfo() {
+    state = state.copyWith(clearInfo: true);
   }
 }
 
