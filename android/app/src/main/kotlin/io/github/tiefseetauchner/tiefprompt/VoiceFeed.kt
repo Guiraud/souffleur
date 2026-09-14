@@ -243,7 +243,17 @@ class VoiceFeed(private val context: Context) :
     override fun onError(error: Int) {
         emit("error", text = errorName(error))
         if (error != SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS) {
-            restartSession(if (error == SpeechRecognizer.ERROR_RECOGNIZER_BUSY) 500 else 300)
+            restartSession(
+                when (error) {
+                    SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> 500
+                    // Back off while the network is down instead of spinning.
+                    SpeechRecognizer.ERROR_NETWORK,
+                    SpeechRecognizer.ERROR_NETWORK_TIMEOUT,
+                    SpeechRecognizer.ERROR_SERVER,
+                    SpeechRecognizer.ERROR_SERVER_DISCONNECTED -> 1500
+                    else -> 300
+                }
+            )
         }
     }
 

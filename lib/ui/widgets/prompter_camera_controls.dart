@@ -170,8 +170,8 @@ class PrompterCameraControlsOverlay extends ConsumerWidget {
             ),
           ),
 
-        // Camera control toolbar
-        if (isPortrait)
+        // Camera control toolbar, hidden with the other controls (tap the text)
+        if (controlsVisible && isPortrait)
           AnimatedPositioned(
             duration: const Duration(milliseconds: 200),
             curve: Curves.easeInOut,
@@ -197,7 +197,7 @@ class PrompterCameraControlsOverlay extends ConsumerWidget {
               ),
             ),
           )
-        else
+        else if (controlsVisible)
           AnimatedPositioned(
             duration: const Duration(milliseconds: 200),
             curve: Curves.easeInOut,

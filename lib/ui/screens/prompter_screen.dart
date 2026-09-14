@@ -183,7 +183,14 @@ class _PrompterScreenState extends ConsumerState<PrompterScreen> {
               // Keyed so the conditional camera preview above does not shift
               // this child and recreate ScrollableText (and its ticker).
               key: const ValueKey('prompter-scrollable-text'),
-              onTap: () {
+              onTapUp: (details) {
+                // During voice tracking, tapping an already-read word resumes
+                // from it; any other tap toggles the controls.
+                if (_scrollableTextController.handleWordTap(
+                  details.globalPosition,
+                )) {
+                  return;
+                }
                 ref.read(controlsVisibleProvider.notifier).toggle();
               },
               child: SafeArea(

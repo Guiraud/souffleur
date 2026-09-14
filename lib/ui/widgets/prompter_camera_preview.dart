@@ -52,7 +52,28 @@ class PrompterCameraBackgroundPreview extends ConsumerWidget {
           Container(
             color: Colors.black.withValues(alpha: cameraState.backgroundDim),
           ),
+          const CameraFramingGuide(),
         ],
+      ),
+    );
+  }
+}
+
+/// Horizontal line one third from the top of the preview: put the eyes on it
+/// for a balanced framing (rule of thirds). Drawn over the preview only, so it
+/// never shows in the recording.
+class CameraFramingGuide extends StatelessWidget {
+  const CameraFramingGuide({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Align(
+        alignment: const Alignment(0, -1 / 3),
+        child: Container(
+          height: 1.5,
+          color: Colors.white.withValues(alpha: 0.55),
+        ),
       ),
     );
   }
@@ -138,6 +159,7 @@ class _PrompterCameraFloatingPreviewState
                       ),
                     ),
                   ),
+                  const CameraFramingGuide(),
                   if (cameraState.isRecording)
                     Positioned(
                       top: 8,

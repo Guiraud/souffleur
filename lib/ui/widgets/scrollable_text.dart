@@ -35,6 +35,13 @@ class ScrollableTextController {
     scrollController.jumpTo(scrollController.offset + offset);
   }
 
+  bool Function(Offset globalPosition)? _wordTapHandler;
+
+  /// Moves voice tracking back to the already-read word at [globalPosition];
+  /// returns whether the tap was used that way.
+  bool handleWordTap(Offset globalPosition) =>
+      _wordTapHandler?.call(globalPosition) ?? false;
+
   void dispose() {
     scrollController.dispose();
   }
@@ -75,6 +82,12 @@ class _ScrollableTextState extends ConsumerState<ScrollableText>
   // reading line.
   final GlobalKey _plainTextKey = GlobalKey();
 
+  // After the reader drags the text (to find a word to go back to), voice
+  // tracking holds still for a moment instead of pulling the text away.
+  static const Duration _holdAfterDrag = Duration(seconds: 6);
+  DateTime? _holdUntil;
+  int _holdMatchIndex = -1;
+
   void _checkScrollingState() {
     final isPlaying = ref.read(prompterProvider).isPlaying;
     final isVoiceListening = ref.read(voiceScrollProvider).isListening;
@@ -114,6 +127,7 @@ class _ScrollableTextState extends ConsumerState<ScrollableText>
 
     _markdownController.addListener(_recomputeChapterOffsets);
     widget.controller.scrollController.addListener(_updateCurrentChapter);
+    widget.controller._wordTapHandler = _onWordTap;
 
     // The ref.listen callbacks in build only fire on *changes*. If playback or
     // voice tracking is already active when this widget is (re)created — e.g.
@@ -227,6 +241,17 @@ class _ScrollableTextState extends ConsumerState<ScrollableText>
     controller.jumpTo(controller.position.pixels + calculatedScrollOffset);
   }
 
+  bool _onWordTap(Offset globalPosition) {
+    if (!ref.read(voiceScrollProvider).isListening) return false;
+    final paragraph = _plainTextKey.currentContext?.findRenderObject();
+    if (paragraph is! RenderParagraph || !paragraph.hasSize) return false;
+    // globalToLocal also undoes the mirroring transforms.
+    final local = paragraph.globalToLocal(globalPosition);
+    if (!(Offset.zero & paragraph.size).contains(local)) return false;
+    final offset = paragraph.getPositionForOffset(local).offset;
+    return ref.read(voiceScrollProvider.notifier).moveBackToCharOffset(offset);
+  }
+
   /// Reading line, as a fraction of the viewport height from its top: the
   /// voice-matched word is kept right at the top, near the camera, with the
   /// upcoming lines visible below it.
@@ -273,6 +298,15 @@ class _ScrollableTextState extends ConsumerState<ScrollableText>
   }
 
   void _tickVoiceScroll(double deltaSeconds, VoiceScrollState voiceState) {
+    final hold = _holdUntil;
+    if (hold != null) {
+      if (voiceState.matchedWordIndex == _holdMatchIndex &&
+          DateTime.now().isBefore(hold)) {
+        return;
+      }
+      _holdUntil = null;
+    }
+
     final controller = widget.controller.scrollController;
     final position = controller.position;
     final targetPixels = _voiceTargetPixels(position, voiceState);
@@ -406,6 +440,10 @@ class _ScrollableTextState extends ConsumerState<ScrollableText>
             notification.dragDetails != null) {
           ref.read(_userScrollingProvider.notifier).setValue(true);
         } else if (notification is ScrollEndNotification) {
+          if (ref.read(_userScrollingProvider)) {
+            _holdUntil = DateTime.now().add(_holdAfterDrag);
+            _holdMatchIndex = ref.read(voiceScrollProvider).matchedWordIndex;
+          }
           ref.read(_userScrollingProvider.notifier).setValue(false);
         }
         return false;
@@ -457,6 +495,9 @@ class _ScrollableTextState extends ConsumerState<ScrollableText>
     _ticker?.dispose();
     _ticker = null;
     widget.controller.scrollController.removeListener(_updateCurrentChapter);
+    if (widget.controller._wordTapHandler == _onWordTap) {
+      widget.controller._wordTapHandler = null;
+    }
     _markdownController.removeListener(_recomputeChapterOffsets);
     _markdownController.dispose();
     super.dispose();

@@ -279,6 +279,8 @@ class VoiceScrollState {
   // Character range in the script of the last matched word, -1 when none.
   final int highlightStart;
   final int highlightEnd;
+  // Online recognition lost the network; cleared by the next result.
+  final bool offline;
 
   const VoiceScrollState({
     this.isAvailable = true,
@@ -294,6 +296,7 @@ class VoiceScrollState {
     this.realignTrigger = 0,
     this.highlightStart = -1,
     this.highlightEnd = -1,
+    this.offline = false,
   });
 
   VoiceScrollState copyWith({
@@ -310,6 +313,7 @@ class VoiceScrollState {
     int? realignTrigger,
     int? highlightStart,
     int? highlightEnd,
+    bool? offline,
     bool clearError = false,
     bool clearInfo = false,
   }) {
@@ -327,6 +331,7 @@ class VoiceScrollState {
       realignTrigger: realignTrigger ?? this.realignTrigger,
       highlightStart: highlightStart ?? this.highlightStart,
       highlightEnd: highlightEnd ?? this.highlightEnd,
+      offline: offline ?? this.offline,
     );
   }
 }
@@ -388,6 +393,11 @@ class VoiceScrollNotifier extends Notifier<VoiceScrollState> {
   int? _pendingJump;
   String? _pendingJumpWords;
 
+  // Last recognized text, and the part of it heard before the reader tapped
+  // a word to move back (ignored so it cannot drag the position forward).
+  String _lastRecognizedWords = '';
+  String? _staleWords;
+
   @override
   VoiceScrollState build() {
     ref.onDispose(() {
@@ -424,6 +434,15 @@ class VoiceScrollNotifier extends Notifier<VoiceScrollState> {
       _scheduleRestartListening(
         delayMs: _consecutiveAudioErrors >= 3 ? 1500 : 300,
       );
+      return;
+    }
+
+    // Online recognition lost the network (error_network, error_network_timeout,
+    // error_server...): not the reader's doing, and sessions restart on their
+    // own once it is back, so report it quietly in the banner.
+    if (errorMsg.contains('network') || errorMsg.contains('server')) {
+      state = state.copyWith(offline: true, clearError: true, isSpeaking: false);
+      _scheduleRestartListening(delayMs: 1500);
       return;
     }
 
@@ -634,9 +653,22 @@ class VoiceScrollNotifier extends Notifier<VoiceScrollState> {
 
   void _onSpeechResult(String recognizedWords) {
     _consecutiveAudioErrors = 0;
-    if (recognizedWords.isEmpty || _scriptTokens.isEmpty) return;
+    if (state.offline) state = state.copyWith(offline: false);
+    _lastRecognizedWords = recognizedWords;
 
-    final spokenWords = tokenizeSpoken(recognizedWords);
+    // After a tap moved the position back, only the words heard since count.
+    var words = recognizedWords;
+    final stale = _staleWords;
+    if (stale != null) {
+      if (words.startsWith(stale)) {
+        words = words.substring(stale.length);
+      } else {
+        _staleWords = null; // A new recognition segment started.
+      }
+    }
+    if (words.trim().isEmpty || _scriptTokens.isEmpty) return;
+
+    final spokenWords = tokenizeSpoken(words);
     if (spokenWords.isEmpty) return;
 
     var match = findMatchInScript(
@@ -647,7 +679,7 @@ class VoiceScrollNotifier extends Notifier<VoiceScrollState> {
     if (match != null) {
       _pendingJump = null;
     } else {
-      match = _confirmedFarMatch(spokenWords, recognizedWords);
+      match = _confirmedFarMatch(spokenWords, words);
     }
 
     final now = DateTime.now();
@@ -761,6 +793,37 @@ class VoiceScrollNotifier extends Notifier<VoiceScrollState> {
     }
     _pendingJump = far;
     _pendingJumpWords = far == null ? null : recognizedWords;
+    return null;
+  }
+
+  /// Moves the tracking position back to the already-read word at
+  /// [charOffset] of the script, e.g. when the reader taps it to start again
+  /// after stumbling. Returns false when no earlier word is there.
+  bool moveBackToCharOffset(int charOffset) {
+    if (!state.isListening) return false;
+    final token = _tokenAt(charOffset);
+    if (token == null || token.index >= state.matchedWordIndex) return false;
+
+    _staleWords = _lastRecognizedWords;
+    _pendingJump = null;
+    _pendingJumpWords = null;
+    _lastMatchTime = null;
+    state = state.copyWith(
+      matchedWordIndex: token.index,
+      scrollProgress: token.charOffset / math.max(1, _scriptTextLength),
+      highlightStart: token.charOffset,
+      highlightEnd: token.charOffset + token.raw.length,
+      // Scroll to it even when it is only a line above.
+      realignTrigger: state.realignTrigger + 1,
+    );
+    return true;
+  }
+
+  ScriptToken? _tokenAt(int charOffset) {
+    for (final token in _scriptTokens) {
+      if (token.charOffset > charOffset) break;
+      if (charOffset <= token.charOffset + token.raw.length) return token;
+    }
     return null;
   }
 

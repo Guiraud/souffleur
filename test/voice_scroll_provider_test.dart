@@ -304,6 +304,60 @@ void main() {
       });
     });
 
+    test('network errors pause quietly instead of a red error', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final notifier = container.read(voiceScrollProvider.notifier);
+
+      for (final code in ['error_network', 'error_network_timeout', 'error_server']) {
+        notifier.handleSpeechError(SpeechRecognitionError(code, true));
+        final state = container.read(voiceScrollProvider);
+        expect(state.errorMessage, isNull, reason: code);
+        expect(state.offline, isTrue, reason: code);
+      }
+
+      notifier.debugLoadScript('Bonjour à tous');
+      notifier.debugSpeechResult('bonjour');
+      expect(container.read(voiceScrollProvider).offline, isFalse);
+    });
+
+    test('tapping an already-read word moves back and ignores stale words', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final notifier = container.read(voiceScrollProvider.notifier);
+
+      const script =
+          "Nous allons parler du projet Souffleur aujourd'hui avec vous tous";
+      final tokens = tokenizeScript(script);
+      String current() =>
+          tokens[container.read(voiceScrollProvider).matchedWordIndex].normalized;
+
+      notifier.debugLoadScript(script);
+      notifier.debugSpeechResult('nous allons parler du projet souffleur');
+      expect(current(), 'souffleur');
+
+      // Reader stumbled and taps "parler" to start again from there.
+      final parler = script.indexOf('parler');
+      expect(notifier.moveBackToCharOffset(parler + 2), isTrue);
+      final state = container.read(voiceScrollProvider);
+      expect(current(), 'parler');
+      expect(state.highlightStart, parler);
+      expect(state.realignTrigger, 1);
+
+      // Words heard before the tap do not drag the position forward again...
+      notifier.debugSpeechResult('nous allons parler du projet souffleur');
+      expect(current(), 'parler');
+
+      // ...while the words read again from the tapped one do.
+      notifier.debugSpeechResult(
+        'nous allons parler du projet souffleur parler du projet',
+      );
+      expect(current(), 'projet');
+
+      // Words not read yet cannot be tapped.
+      expect(notifier.moveBackToCharOffset(script.indexOf('vous')), isFalse);
+    });
+
     test('pickFrenchLocaleId prefers France French over other variants', () {
       // Recognizers list variants alphabetically, so fr-BE comes first.
       expect(

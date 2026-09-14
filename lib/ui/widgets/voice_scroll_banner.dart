@@ -13,7 +13,9 @@ class VoiceScrollBanner extends ConsumerWidget {
 
     // The recognized word is highlighted in the text itself; the banner only
     // reports status and the microphone level.
-    final status = voiceState.isSpeaking
+    final status = voiceState.offline
+        ? 'Réseau indisponible : reconnaissance en pause'
+        : voiceState.isSpeaking
         ? 'Vitesse vocale : ~${voiceState.speechRateWpm.round()} mots/min'
         : (voiceState.matchedWordIndex > 0
               ? 'Reprenez votre lecture pour faire défiler'
@@ -56,7 +58,9 @@ class VoiceScrollBanner extends ConsumerWidget {
                     Text(
                       status,
                       style: TextStyle(
-                        color: voiceState.isSpeaking
+                        color: voiceState.offline
+                            ? Colors.orangeAccent
+                            : voiceState.isSpeaking
                             ? Colors.tealAccent
                             : Colors.white,
                         fontSize: 12,

@@ -52,6 +52,24 @@ class _ReadingLine150VoiceScroll extends VoiceScrollNotifier {
   );
 }
 
+/// Speaker is on word 10; records the word taps forwarded to the notifier.
+class _TapRecordingVoiceScroll extends VoiceScrollNotifier {
+  int? tappedOffset;
+
+  @override
+  VoiceScrollState build() => const VoiceScrollState(
+    isListening: true,
+    matchedWordIndex: 10,
+    totalWords: 20,
+  );
+
+  @override
+  bool moveBackToCharOffset(int charOffset) {
+    tappedOffset = charOffset;
+    return true;
+  }
+}
+
 Widget _prompter(
   ScrollableTextController controller,
   String text,
@@ -122,6 +140,44 @@ void main() {
 
     // Test viewport: the whole 600 px high test screen; reading line at 8 %.
     expect(wordTopOnScreen, closeTo(600 * 0.08, 2));
+  });
+
+  testWidgets('tapping a word hands its position to voice tracking', (
+    tester,
+  ) async {
+    // Start with the text top already on screen (below the reading line).
+    final controller = ScrollableTextController(initialScrollOffset: 500);
+    addTearDown(controller.dispose);
+
+    const text = 'Bonjour à tous et bienvenue dans Souffleur';
+    await tester.pumpWidget(
+      _prompter(controller, text, _TapRecordingVoiceScroll.new),
+    );
+    await tester.pump(const Duration(milliseconds: 16));
+
+    final paragraph = tester.renderObject<RenderParagraph>(
+      find.byWidgetPredicate(
+        (w) => w is RichText && w.text.toPlainText() == text,
+      ),
+    );
+    final start = text.indexOf('bienvenue');
+    final caret = paragraph.getOffsetForCaret(
+      TextPosition(offset: start + 3),
+      Rect.zero,
+    );
+    final lineHeight = paragraph.getFullHeightForCaret(
+      TextPosition(offset: start + 3),
+    );
+    final tap = paragraph.localToGlobal(caret + Offset(0, lineHeight / 2));
+
+    expect(controller.handleWordTap(tap), isTrue);
+
+    final notifier =
+        ProviderScope.containerOf(
+              tester.element(find.byType(ScrollableText)),
+            ).read(voiceScrollProvider.notifier)
+            as _TapRecordingVoiceScroll;
+    expect(notifier.tappedOffset, inInclusiveRange(start, start + 'bienvenue'.length));
   });
 
   testWidgets('voice-matched word is highlighted in the scrolling text', (
