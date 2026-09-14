@@ -120,7 +120,7 @@ void main() {
       expect(tokens[match3].normalized, 'souffleur');
     });
 
-    test('findMatchInScript handles single words if length >= 2', () {
+    test('findMatchInScript accepts a single word among the next expected words', () {
       const script = "Premièrement, nous devons analyser la situation.";
       final tokens = tokenizeScript(script);
 
@@ -225,6 +225,83 @@ void main() {
       notifier.clearError();
       notifier.handleSpeechError(audioError);
       expect(container.read(voiceScrollProvider).errorMessage, isNull);
+    });
+
+    group('sliding search zone', () {
+      // Paragraph 3 reuses words of paragraph 1 a few dozen words later.
+      final script = [
+        "Aujourd'hui je vous présente le projet Souffleur, un prompteur libre.",
+        List.filled(
+          3,
+          'Ensuite nous verrons comment il fonctionne en pratique.',
+        ).join(' '),
+        'Enfin le projet Souffleur sera disponible de la manière la plus simple.',
+      ].join('\n\n');
+      final tokens = tokenizeScript(script);
+      // Reader is on "prompteur", in paragraph 1.
+      final current = tokens.indexWhere((t) => t.normalized == 'prompteur');
+
+      void expectNoJump(String spoken) {
+        final match = findMatchInScript(
+          scriptTokens: tokens,
+          spokenNormWords: tokenizeSpoken(spoken),
+          currentIndex: current,
+        );
+        expect(
+          match == null || match <= current + 3,
+          isTrue,
+          reason: '"$spoken" jumped to word $match (${match == null ? '' : tokens[match].raw})',
+        );
+      }
+
+      test('a repeated single word does not jump to a later paragraph', () {
+        // Mis-heard word followed by "projet", which reappears in paragraph 3.
+        expectNoJump('ceci projet');
+      });
+
+      test('two common words do not jump to a later paragraph', () {
+        expectNoJump('voilà de la');
+      });
+
+      test('a repeated two-word phrase does not jump to a later paragraph', () {
+        expectNoJump('le projet');
+      });
+
+      test('a far jump is only followed once two results agree on it', () {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
+        final notifier = container.read(voiceScrollProvider.notifier);
+
+        final longScript = [
+          'Introduction du sujet avec quelques mots.',
+          List.filled(
+            8,
+            'Un passage intermédiaire assez long pour sortir de la zone.',
+          ).join(' '),
+          'Enfin le projet Souffleur sera disponible pour tous.',
+        ].join('\n\n');
+        final longTokens = tokenizeScript(longScript);
+        notifier.debugLoadScript(longScript);
+
+        // Reader skipped to the last paragraph: one result is not enough...
+        notifier.debugSpeechResult('enfin le projet Souffleur');
+        expect(container.read(voiceScrollProvider).matchedWordIndex, 0);
+
+        // ...a second one agreeing on the same place is.
+        notifier.debugSpeechResult('enfin le projet Souffleur sera');
+        final matched = container.read(voiceScrollProvider).matchedWordIndex;
+        expect(longTokens[matched].normalized, 'sera');
+      });
+
+      test('the next words of the current sentence still match', () {
+        final match = findMatchInScript(
+          scriptTokens: tokens,
+          spokenNormWords: tokenizeSpoken('un prompteur libre'),
+          currentIndex: current,
+        );
+        expect(match, isNotNull);
+        expect(tokens[match!].normalized, 'libre');
+      });
     });
 
     test('pickFrenchLocaleId prefers France French over other variants', () {

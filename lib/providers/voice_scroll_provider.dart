@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:math' as math;
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
@@ -146,6 +148,21 @@ bool _editDistanceAtMostOne(String s1, String s2) {
   return true;
 }
 
+/// Sliding search zone around the reader's position, in script words: a match
+/// may end at most [_zoneBehind] words back and [_zoneAheadShort] (2-word
+/// phrases) or [_zoneAheadLong] (3-4 words) ahead, so a word or phrase that
+/// reappears further in the text can no longer pull the position there.
+/// Leaving the zone goes through [findFarMatch].
+const int _zoneBehind = 2;
+const int _zoneAheadShort = 25;
+const int _zoneAheadLong = 40;
+
+/// A single word is only trusted among the next few expected words.
+const int _singleWordAhead = 3;
+
+bool _isContentWord(String word) =>
+    word.length >= 3 && !_frenchStopWords.contains(word);
+
 int? findMatchInScript({
   required List<ScriptToken> scriptTokens,
   required List<String> spokenNormWords,
@@ -153,104 +170,98 @@ int? findMatchInScript({
 }) {
   if (scriptTokens.isEmpty || spokenNormWords.isEmpty) return null;
 
-  // 1. Multi-word phrase search (4, 3, 2 words) from tail of spoken words
+  // 1. Last 4, 3 then 2 spoken words as a phrase, nearest occurrence in the zone.
   for (int seqLen = 4; seqLen >= 2; seqLen--) {
-    if (spokenNormWords.length >= seqLen) {
-      final phrase = spokenNormWords.sublist(spokenNormWords.length - seqLen);
-      final match = _searchPhrase(scriptTokens, phrase, currentIndex);
-      if (match != null) return match;
-    }
+    if (spokenNormWords.length < seqLen) continue;
+    final phrase = spokenNormWords.sublist(spokenNormWords.length - seqLen);
+    // Two stop words ("de la", "et le") occur everywhere, even in the zone.
+    if (seqLen == 2 && !phrase.any(_isContentWord)) continue;
+    final match = _searchPhrase(
+      scriptTokens,
+      phrase,
+      currentIndex,
+      ahead: seqLen == 2 ? _zoneAheadShort : _zoneAheadLong,
+    );
+    if (match != null) return match;
   }
 
-  // 2. Single-word search from tail (check last 2 spoken words, min length 3, excluding stopwords)
-  for (int i = spokenNormWords.length - 1;
-      i >= 0 && i >= spokenNormWords.length - 2;
-      i--) {
-    final word = spokenNormWords[i];
-    if (word.length >= 3 && !_frenchStopWords.contains(word)) {
-      final match = _searchSingleWord(scriptTokens, word, currentIndex);
-      if (match != null) return match;
+  // 2. Last spoken word alone, only if it is one of the next expected words.
+  final word = spokenNormWords.last;
+  if (_isContentWord(word)) {
+    final first = currentIndex.clamp(0, scriptTokens.length - 1);
+    final last = (currentIndex + _singleWordAhead).clamp(0, scriptTokens.length - 1);
+    for (int i = first; i <= last; i++) {
+      if (wordsFuzzyEqual(scriptTokens[i].normalized, word)) return i;
     }
-  }
-
-  // 3. Global phrase search if speaker jumped ahead or restarted (3-word phrase)
-  if (spokenNormWords.length >= 3) {
-    final phrase = spokenNormWords.sublist(spokenNormWords.length - 3);
-    final globalMatch = _searchGlobalPhrase(scriptTokens, phrase, currentIndex);
-    if (globalMatch != null) return globalMatch;
   }
 
   return null;
 }
 
+/// Occurrence of the last 4 spoken words outside the sliding zone, for when
+/// the reader skipped ahead or went back. Needs 2 content words so common
+/// phrases cannot match; the caller should confirm it before jumping.
+int? findFarMatch({
+  required List<ScriptToken> scriptTokens,
+  required List<String> spokenNormWords,
+  required int currentIndex,
+}) {
+  const length = 4;
+  if (spokenNormWords.length < length) return null;
+  final phrase = spokenNormWords.sublist(spokenNormWords.length - length);
+  if (phrase.where(_isContentWord).length < 2) return null;
+
+  int? best;
+  int bestDistance = 1 << 30;
+  for (int end = length - 1; end < scriptTokens.length; end++) {
+    final inZone = end >= currentIndex - _zoneBehind &&
+        end <= currentIndex + _zoneAheadLong;
+    if (inZone || !_phraseEndsAt(scriptTokens, phrase, end)) continue;
+    // Prefer forward progression by weighting backward jumps more heavily.
+    final distance = end >= currentIndex
+        ? end - currentIndex
+        : (currentIndex - end) * 2;
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = end;
+    }
+  }
+  return best;
+}
+
+/// Nearest occurrence of [phrase] whose last word lies in the sliding zone,
+/// preferring forward progress over re-matching what was just read.
 int? _searchPhrase(
   List<ScriptToken> script,
   List<String> phrase,
-  int currentIndex,
-) {
-  final searchStart = (currentIndex - 3).clamp(0, script.length - 1);
-  final searchEnd = (currentIndex + 80).clamp(0, script.length);
+  int currentIndex, {
+  required int ahead,
+}) {
+  final firstEnd = math.max(phrase.length - 1, currentIndex - _zoneBehind);
+  final lastEnd = math.min(script.length - 1, currentIndex + ahead);
 
-  for (int i = searchStart; i <= searchEnd - phrase.length; i++) {
-    bool matched = true;
-    for (int j = 0; j < phrase.length; j++) {
-      if (!wordsFuzzyEqual(script[i + j].normalized, phrase[j])) {
-        matched = false;
-        break;
-      }
-    }
-    if (matched) {
-      return i + phrase.length - 1;
+  int? best;
+  int bestDistance = 1 << 30;
+  for (int end = firstEnd; end <= lastEnd; end++) {
+    if (!_phraseEndsAt(script, phrase, end)) continue;
+    final distance = end >= currentIndex
+        ? end - currentIndex
+        : (currentIndex - end) * 3;
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = end;
     }
   }
-  return null;
+  return best;
 }
 
-int? _searchSingleWord(
-  List<ScriptToken> script,
-  String word,
-  int currentIndex,
-) {
-  final searchStart = (currentIndex - 1).clamp(0, script.length - 1);
-  final searchEnd = (currentIndex + 45).clamp(0, script.length);
-
-  for (int i = searchStart; i < searchEnd; i++) {
-    if (wordsFuzzyEqual(script[i].normalized, word)) {
-      return i;
-    }
+bool _phraseEndsAt(List<ScriptToken> script, List<String> phrase, int end) {
+  final start = end - phrase.length + 1;
+  if (start < 0) return false;
+  for (int j = 0; j < phrase.length; j++) {
+    if (!wordsFuzzyEqual(script[start + j].normalized, phrase[j])) return false;
   }
-  return null;
-}
-
-int? _searchGlobalPhrase(
-  List<ScriptToken> script,
-  List<String> phrase,
-  int currentIndex,
-) {
-  int? bestMatch;
-  int bestDistance = 999999;
-
-  for (int i = 0; i <= script.length - phrase.length; i++) {
-    bool matched = true;
-    for (int j = 0; j < phrase.length; j++) {
-      if (!wordsFuzzyEqual(script[i + j].normalized, phrase[j])) {
-        matched = false;
-        break;
-      }
-    }
-    if (matched) {
-      final matchEnd = i + phrase.length - 1;
-      // Prefer forward progression slightly by weighting backward jumps more heavily
-      final distance = matchEnd >= currentIndex
-          ? matchEnd - currentIndex
-          : (currentIndex - matchEnd) * 2;
-      if (distance < bestDistance) {
-        bestDistance = distance;
-        bestMatch = matchEnd;
-      }
-    }
-  }
-  return bestMatch;
+  return true;
 }
 
 class VoiceScrollState {
@@ -372,6 +383,10 @@ class VoiceScrollNotifier extends Notifier<VoiceScrollState> {
   // which keeps working while the camera records sound.
   bool _usingFeed = false;
   StreamSubscription<VoiceFeedEvent>? _feedSub;
+
+  // Far match waiting for a second recognition result to confirm it.
+  int? _pendingJump;
+  String? _pendingJumpWords;
 
   @override
   VoiceScrollState build() {
@@ -574,6 +589,8 @@ class VoiceScrollNotifier extends Notifier<VoiceScrollState> {
     _lastMatchTime = null;
     _currentWpm = 140.0;
     _consecutiveAudioErrors = 0;
+    _pendingJump = null;
+    _pendingJumpWords = null;
 
     try {
       if (_usingFeed) {
@@ -622,11 +639,16 @@ class VoiceScrollNotifier extends Notifier<VoiceScrollState> {
     final spokenWords = tokenizeSpoken(recognizedWords);
     if (spokenWords.isEmpty) return;
 
-    final match = findMatchInScript(
+    var match = findMatchInScript(
       scriptTokens: _scriptTokens,
       spokenNormWords: spokenWords,
       currentIndex: state.matchedWordIndex,
     );
+    if (match != null) {
+      _pendingJump = null;
+    } else {
+      match = _confirmedFarMatch(spokenWords, recognizedWords);
+    }
 
     final now = DateTime.now();
 
@@ -718,6 +740,40 @@ class VoiceScrollNotifier extends Notifier<VoiceScrollState> {
       isSpeaking: false,
     );
   }
+
+  /// A match outside the sliding zone is only followed once two different
+  /// recognition results agree on it, so one mis-heard phrase cannot move the
+  /// text to another paragraph.
+  int? _confirmedFarMatch(List<String> spokenWords, String recognizedWords) {
+    final far = findFarMatch(
+      scriptTokens: _scriptTokens,
+      spokenNormWords: spokenWords,
+      currentIndex: state.matchedWordIndex,
+    );
+    final pending = _pendingJump;
+    if (far != null &&
+        pending != null &&
+        far >= pending &&
+        far - pending <= 4 &&
+        recognizedWords != _pendingJumpWords) {
+      _pendingJump = null;
+      return far;
+    }
+    _pendingJump = far;
+    _pendingJumpWords = far == null ? null : recognizedWords;
+    return null;
+  }
+
+  @visibleForTesting
+  void debugLoadScript(String scriptText) {
+    _scriptTextLength = scriptText.length;
+    _scriptTokens = tokenizeScript(scriptText);
+    state = state.copyWith(isListening: true, totalWords: _scriptTokens.length);
+  }
+
+  @visibleForTesting
+  void debugSpeechResult(String recognizedWords) =>
+      _onSpeechResult(recognizedWords);
 
   void realignToLastMatch() {
     state = state.copyWith(realignTrigger: state.realignTrigger + 1);
