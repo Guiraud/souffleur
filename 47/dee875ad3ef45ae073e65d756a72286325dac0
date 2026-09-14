@@ -1,0 +1,31 @@
+pubspec.yaml
+  s_ca5ded91108744::t_59665dacd3a360 19
+lib/ui/widgets/scrollable_text.dart
+  s_ca5ded91108744::t_ce1ff025cbba04 74-76
+  s_ca5ded91108744::t_24b9da44ba04d3 439
+  s_ca5ded91108744::t_a3ded2ef57bc3b 1-2
+  s_ca5ded91108744::t_a5458ac0c15e4c 354-357
+  s_ca5ded91108744::t_705ebdf2ec86b2 230-274,277-279,282-283,288-293
+  s_ca5ded91108744::t_3bb4f74b4a6481 4
+test/scrollable_text_voice_test.dart
+  s_ca5ded91108744::t_c9f878c91d5f69 108-109
+  s_ca5ded91108744::t_d91200404ca09a 2
+  s_ca5ded91108744::t_0b1f5cdaba31be 35-54
+  s_ca5ded91108744::t_731736e5222ba1 98-107,110-126
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "development:1.7.1",
+  "base_commit_sha": "47dee875ad3ef45ae073e65d756a72286325dac0",
+  "prompts": {},
+  "sessions": {
+    "s_ca5ded91108744": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ca552085-0e94-4673-873b-c158c70eba5f",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Guiraud <mehdi.guiraud@gmail.com>"
+    }
+  }
+}
