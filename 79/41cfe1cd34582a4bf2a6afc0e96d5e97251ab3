@@ -1,0 +1,164 @@
+test/scrollable_text_voice_test.dart
+  s_e0043cf93dd90d::t_4554a84472e960 5-6
+lib/core/json_converters.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 3
+test/drift/tiefprompt/migration_test.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 8-11
+lib/providers/feature_provider_freemium.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 9-18
+lib/providers/keybinding_provider.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 4-8
+lib/providers/router_provider.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 3-16
+lib/providers/feature_provider_foss.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 4-10
+lib/models/database.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 6-13
+README.md
+  s_e0043cf93dd90d::t_34758750af7eb1 1,3,5,7,9,11-20,22,24,26,28,30,32,35,38,40-43,46-49,51-54,56,58,60,62,64,66,68-72
+lib/ui/screens/no_purchase_available_screen.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 6
+lib/ui/screens/settings/settings_screen.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 4-5,7-11
+assets/translations/fr-FR.json
+  s_e0043cf93dd90d::t_4fc8c407580e78 5
+  s_e0043cf93dd90d::t_759c95dffc01e7 245-246
+lib/ui/widgets/banner_listener.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 4
+test/voice_scroll_provider_test.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 4
+lib/providers/voice_scroll_provider.dart
+  s_e0043cf93dd90d::t_4554a84472e960 7
+lib/ui/screens/settings/settings_restore_screen.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 7,11-19
+lib/ui/widgets/prompter_camera_preview.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 4
+lib/ui/widgets/themed_app.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 4-7
+lib/ui/widgets/current_chapter_banner.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 3-4
+lib/ui/screens/home_screen.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 5-6,11-21
+lib/ui/screens/log_viewer_screen.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 4
+lib/providers/theme_provider.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 4-5
+lib/main.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 6-11
+lib/models/script_model.drift.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 4-5
+lib/providers/camera_provider.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 5
+assets/images/icon_bg_round.svg
+  s_e0043cf93dd90d::t_c362e5bbec7d4e 1-31,33-81
+lib/models/database.steps.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 4
+lib/ui/widgets/prompter_camera_controls.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 4-6
+lib/ui/screens/open_file_screen.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 6,9-10
+lib/ui/screens/prompter_screen.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 5-27
+lib/models/database.drift.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 4-7
+lib/core/disabled_feature_screen_state.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 1
+lib/providers/prompter_provider.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 6-8
+test/camera_provider_test.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 4
+lib/main_freemium.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 6-11
+assets/images/icon.svg
+  s_e0043cf93dd90d::t_c362e5bbec7d4e 1-31,33-81
+test/drift/tiefprompt/generated/schema_v3.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 2
+lib/ui/screens/settings/keybindings_settings_screen.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 3-4,6-9
+lib/providers/feature_provider_unverified.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 3-8
+lib/main_foss.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 6-11
+lib/providers/feature_provider.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 3-4
+lib/ui/screens/help_request_screen.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 4-5,8-9
+lib/providers/script_provider.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 3
+lib/ui/widgets/async_settings_builder.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 4-7
+lib/models/app_state.drift.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 4-5
+lib/ui/widgets/app_settings.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 7-11
+lib/ui/widgets/prompter_top_bar.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 4-6
+lib/ui/widgets/prompter_bottom_bar.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 6-17
+lib/providers/settings_provider.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 7-11
+pubspec.yaml
+  s_e0043cf93dd90d::t_35076317864b82 96-97
+  s_e0043cf93dd90d::t_78ec80176c35c9 1-2
+lib/models/keybinding.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 3
+lib/core/constants.dart
+  s_e0043cf93dd90d::t_3e6047c9223c59 17-21
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 5
+PRIVACY.md
+  s_e0043cf93dd90d::t_eb53a31b872c40 1-52
+lib/ui/screens/settings/text_settings_screen.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 3-4,6-8
+test/drift/tiefprompt/generated/schema_v2.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 2
+test/drift/tiefprompt/generated/schema_v4.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 2
+lib/ui/widgets/prompter_control_buttons_overlay.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 3-4
+lib/models/settings_preset_model.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 2
+lib/services/script_service.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 3-7
+lib/providers/database_provider.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 2-3
+lib/providers/prompter_config.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 3-5
+lib/models/keybinding.drift.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 4-5
+lib/ui/screens/settings/display_settings_screen.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 3,5-9
+lib/ui/widgets/scrollable_text.dart
+  s_e0043cf93dd90d::t_4554a84472e960 8-10
+lib/teleprompter_app.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 5-14
+lib/ui/screens/reset_settings_screen.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 3-5
+lib/ui/widgets/prompter_theme_scope.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 3
+lib/services/settings_storage_service.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 4-8
+lib/providers/app_features.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 2
+lib/ui/screens/buy_pro_screen.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 6-9
+lib/models/settings_preset_model.drift.dart
+  s_e0043cf93dd90d::t_dec46dd4fbf0ab 4-6
+lib/ui/widgets/voice_scroll_banner.dart
+  s_e0043cf93dd90d::t_4554a84472e960 4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "development:1.7.1",
+  "base_commit_sha": "7941cfe1cd34582a4bf2a6afc0e96d5e97251ab3",
+  "prompts": {},
+  "sessions": {
+    "s_e0043cf93dd90d": {
+      "agent_id": {
+        "tool": "antigravity",
+        "id": "9eb42d46-321e-4eb9-bf77-85ebe90f751e",
+        "model": "gemini-3.8-flash-high"
+      },
+      "human_author": "Guiraud <mehdi.guiraud@gmail.com>"
+    }
+  }
+}
