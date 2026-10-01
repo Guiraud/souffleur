@@ -138,6 +138,7 @@ class _ScrollableTextState extends ConsumerState<ScrollableText>
       // A drag interrupted by a rebuild never delivers its ScrollEndNotification.
       ref.read(_userScrollingProvider.notifier).setValue(false);
       _checkScrollingState();
+      if (ref.read(voiceScrollProvider).isListening) _jumpToVoiceTarget();
     });
   }
 
@@ -239,6 +240,15 @@ class _ScrollableTextState extends ConsumerState<ScrollableText>
       return;
     }
     controller.jumpTo(controller.position.pixels + calculatedScrollOffset);
+  }
+
+  void _jumpToVoiceTarget() {
+    final controller = widget.controller.scrollController;
+    if (!controller.hasClients) return;
+    _holdUntil = null;
+    controller.jumpTo(
+      _voiceTargetPixels(controller.position, ref.read(voiceScrollProvider)),
+    );
   }
 
   bool _onWordTap(Offset globalPosition) {
@@ -375,6 +385,10 @@ class _ScrollableTextState extends ConsumerState<ScrollableText>
       voiceScrollProvider.select((v) => v.isListening),
       (previous, next) {
         _checkScrollingState();
+        // Voice tracking always starts from the first word: put it on the
+        // reading line at once instead of gliding there from wherever the
+        // text was left (the stored position, or mid-screen for a new file).
+        if (next && previous != true) _jumpToVoiceTarget();
       },
     );
 

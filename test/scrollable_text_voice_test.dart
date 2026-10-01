@@ -70,6 +70,15 @@ class _TapRecordingVoiceScroll extends VoiceScrollNotifier {
   }
 }
 
+/// Idle until [fakeStart], which starts voice tracking from the first word.
+class _StartableVoiceScroll extends VoiceScrollNotifier {
+  @override
+  VoiceScrollState build() => const VoiceScrollState();
+
+  void fakeStart() =>
+      state = const VoiceScrollState(isListening: true, totalWords: 1000);
+}
+
 Widget _prompter(
   ScrollableTextController controller,
   String text,
@@ -103,7 +112,9 @@ void main() {
         _prompter(controller, text, _AlreadyListeningVoiceScroll.new),
       );
 
-      final initialOffset = controller.scrollController.offset;
+      // The controller starts at 0; the text may already have jumped to its
+      // voice target during the first frame.
+      const initialOffset = 0.0;
 
       for (var i = 0; i < 60; i++) {
         await tester.pump(const Duration(milliseconds: 16));
@@ -178,6 +189,36 @@ void main() {
             ).read(voiceScrollProvider.notifier)
             as _TapRecordingVoiceScroll;
     expect(notifier.tappedOffset, inInclusiveRange(start, start + 'bienvenue'.length));
+  });
+
+  testWidgets('starting voice tracking shows the first word at once', (
+    tester,
+  ) async {
+    // Text left far down, as with a stored scroll position.
+    final controller = ScrollableTextController(initialScrollOffset: 3000);
+    addTearDown(controller.dispose);
+
+    final text = _lines(200);
+    await tester.pumpWidget(
+      _prompter(controller, text, _StartableVoiceScroll.new),
+    );
+
+    final notifier =
+        ProviderScope.containerOf(
+              tester.element(find.byType(ScrollableText)),
+            ).read(voiceScrollProvider.notifier)
+            as _StartableVoiceScroll;
+    notifier.fakeStart();
+    // One frame: no time to glide, only a jump puts the text there.
+    await tester.pump(const Duration(milliseconds: 16));
+
+    final paragraph = tester.renderObject<RenderParagraph>(
+      find.byWidgetPredicate(
+        (w) => w is RichText && w.text.toPlainText() == text,
+      ),
+    );
+    // First line on the reading line, 8 % down the 600 px test screen.
+    expect(paragraph.localToGlobal(Offset.zero).dy, closeTo(600 * 0.08, 2));
   });
 
   testWidgets('voice-matched word is highlighted in the scrolling text', (

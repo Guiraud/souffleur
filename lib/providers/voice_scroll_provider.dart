@@ -281,6 +281,9 @@ class VoiceScrollState {
   final int highlightEnd;
   // Online recognition lost the network; cleared by the next result.
   final bool offline;
+  // Recognition engine reported by the native feed: 'offline' (on-device
+  // model), 'online' or 'downloading' (offline model being installed).
+  final String? recognitionEngine;
 
   const VoiceScrollState({
     this.isAvailable = true,
@@ -297,6 +300,7 @@ class VoiceScrollState {
     this.highlightStart = -1,
     this.highlightEnd = -1,
     this.offline = false,
+    this.recognitionEngine,
   });
 
   VoiceScrollState copyWith({
@@ -314,6 +318,7 @@ class VoiceScrollState {
     int? highlightStart,
     int? highlightEnd,
     bool? offline,
+    String? recognitionEngine,
     bool clearError = false,
     bool clearInfo = false,
   }) {
@@ -332,6 +337,7 @@ class VoiceScrollState {
       highlightStart: highlightStart ?? this.highlightStart,
       highlightEnd: highlightEnd ?? this.highlightEnd,
       offline: offline ?? this.offline,
+      recognitionEngine: recognitionEngine ?? this.recognitionEngine,
     );
   }
 }
@@ -640,6 +646,8 @@ class VoiceScrollNotifier extends Notifier<VoiceScrollState> {
         if (text != null) _onSpeechResult(text);
       case 'level':
         ref.read(voiceSoundLevelProvider.notifier).set(event.value ?? 0.0);
+      case 'engine':
+        state = state.copyWith(recognitionEngine: event.text);
       case 'error':
         handleSpeechError(
           SpeechRecognitionError(event.text ?? 'error_unknown', false),

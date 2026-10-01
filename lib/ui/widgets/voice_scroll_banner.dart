@@ -72,7 +72,27 @@ class VoiceScrollBanner extends ConsumerWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
-                    const _MicLevelMeter(),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const _MicLevelMeter(),
+                        if (_engineLabel(voiceState.recognitionEngine)
+                            case final label?) ...[
+                          const SizedBox(width: 6),
+                          Text(
+                            label,
+                            style: TextStyle(
+                              color: voiceState.recognitionEngine == 'offline'
+                                  ? Colors.tealAccent
+                                  : voiceState.recognitionEngine == 'downloading'
+                                  ? Colors.orangeAccent
+                                  : Colors.white54,
+                              fontSize: 9,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -128,6 +148,13 @@ class VoiceScrollBanner extends ConsumerWidget {
     );
   }
 }
+
+String? _engineLabel(String? engine) => switch (engine) {
+  'offline' => 'Hors-ligne',
+  'online' => 'En ligne',
+  'downloading' => 'Téléchargement du modèle hors-ligne…',
+  _ => null,
+};
 
 /// Live microphone level of the recognition session. A flat bar while
 /// speaking means the recognizer gets no audio (e.g. the camera holds the mic).

@@ -6,7 +6,8 @@ import 'package:flutter/services.dart';
 /// One event from the native voice feed.
 ///
 /// [type] is `partial` / `final` (recognized [text]), `level` (microphone
-/// level 0..1 in [value]), `error` (error code in [text]) or `status`.
+/// level 0..1 in [value]), `error` (error code in [text]), `engine`
+/// (`offline`, `online` or `downloading` in [text]) or `status`.
 class VoiceFeedEvent {
   final String type;
   final String? text;
@@ -44,8 +45,13 @@ class VoiceFeed {
       .receiveBroadcastStream()
       .map((event) => VoiceFeedEvent.fromMap(event as Map<Object?, Object?>));
 
-  static Future<void> start(String localeId) =>
-      _methods.invokeMethod('start', {'locale': localeId.replaceAll('_', '-')});
+  /// Starts recognition; with [preferOffline], an installed on-device model is
+  /// used instead of the network (an `engine` event reports which one runs).
+  static Future<void> start(String localeId, {bool preferOffline = true}) =>
+      _methods.invokeMethod('start', {
+        'locale': localeId.replaceAll('_', '-'),
+        'offline': preferOffline,
+      });
 
   static Future<void> stop() => _methods.invokeMethod('stop');
 }
