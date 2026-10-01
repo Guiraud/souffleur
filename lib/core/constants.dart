@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/services.dart';
 import 'package:talker_riverpod_logger/talker_riverpod_logger.dart';
-import 'package:tiefprompt/models/keybinding.dart';
+import 'package:souffleur/models/keybinding.dart';
 
 const double kPrompterMinSpeed = 0.1;
 const double kPrompterMaxSpeed = 20.0;
@@ -14,10 +14,11 @@ const double kPrompterMinSideMargin = 0.0;
 const double kPrompterMaxSideMargin = 99.0;
 
 const String kRepoUrl = "https://github.com/Guiraud/souffleur";
-const String kWeblateUrl = "https://hosted.weblate.org/projects/tiefprompt/";
-const String kPrivacyPolicyUrl = "https://tiefprompt.com/policies/privacy/en/";
-const String kLukeChriswalkerUrl = "https://www.lukechriswalker.at";
-const String kDonationUrl = "https://tiefprompt.com/donate";
+const String kWeblateUrl = "https://github.com/Guiraud/souffleur";
+const String kPrivacyPolicyUrl =
+    "https://github.com/Guiraud/souffleur/blob/main/PRIVACY.md";
+const String kLukeChriswalkerUrl = "https://github.com/Guiraud";
+const String kDonationUrl = "https://github.com/Guiraud/souffleur";
 
 const String kNewScriptName = "New Script";
 

@@ -1,7 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tiefprompt/providers/banner_provider.dart';
+import 'package:souffleur/providers/banner_provider.dart';
 
 class BannerListener extends ConsumerStatefulWidget {
   final Widget child;

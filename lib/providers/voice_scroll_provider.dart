@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
-import 'package:tiefprompt/services/voice_feed.dart';
+import 'package:souffleur/services/voice_feed.dart';
 
 class ScriptToken {
   final String raw;

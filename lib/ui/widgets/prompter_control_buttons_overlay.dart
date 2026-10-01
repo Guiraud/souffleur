@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tiefprompt/core/control_buttons.dart';
-import 'package:tiefprompt/providers/prompter_provider.dart';
+import 'package:souffleur/core/control_buttons.dart';
+import 'package:souffleur/providers/prompter_provider.dart';
 
 const double kPrompterControlButtonsOverlayIconSize = 45;
 

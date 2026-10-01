@@ -1,12 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:tiefprompt/ui/widgets/safe_scaffold.dart';
-import 'package:tiefprompt/ui/widgets/async_settings_builder.dart';
+import 'package:souffleur/ui/widgets/safe_scaffold.dart';
+import 'package:souffleur/ui/widgets/async_settings_builder.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tiefprompt/core/constants.dart';
-import 'package:tiefprompt/models/keybinding.dart';
-import 'package:tiefprompt/providers/keybinding_provider.dart';
-import 'package:tiefprompt/ui/widgets/app_settings.dart';
+import 'package:souffleur/core/constants.dart';
+import 'package:souffleur/models/keybinding.dart';
+import 'package:souffleur/providers/keybinding_provider.dart';
+import 'package:souffleur/ui/widgets/app_settings.dart';
 
 class KeybindingsSettingsScreen extends ConsumerWidget {
   const KeybindingsSettingsScreen({super.key});

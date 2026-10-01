@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:tiefprompt/core/control_buttons.dart';
-import 'package:tiefprompt/providers/prompter_config.dart';
-import 'package:tiefprompt/providers/settings_provider.dart';
+import 'package:souffleur/core/control_buttons.dart';
+import 'package:souffleur/providers/prompter_config.dart';
+import 'package:souffleur/providers/settings_provider.dart';
 
 part 'prompter_provider.freezed.dart';
 part 'prompter_provider.g.dart';

@@ -1,107 +1,81 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="45%" r="65%">
+      <stop offset="0%" stop-color="#112938"/>
+      <stop offset="60%" stop-color="#0a1822"/>
+      <stop offset="100%" stop-color="#050d13"/>
+    </radialGradient>
+    <linearGradient id="screenFill" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#102838" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#081722" stop-opacity="0.95"/>
+    </linearGradient>
+    <linearGradient id="tealBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#42F5E8"/>
+      <stop offset="50%" stop-color="#1FB6B6"/>
+      <stop offset="100%" stop-color="#157D7D"/>
+    </linearGradient>
+    <linearGradient id="voiceGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1FB6B6"/>
+      <stop offset="35%" stop-color="#42F5E8"/>
+      <stop offset="70%" stop-color="#6CFFE8"/>
+      <stop offset="100%" stop-color="#1FB6B6"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="14" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="24" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
 
-<svg
-   width="20mm"
-   height="20mm"
-   viewBox="0 0 20 20"
-   version="1.1"
-   id="svg1"
-   xml:space="preserve"
-   inkscape:version="1.4.2 (ebf0e940, 2025-05-08)"
-   sodipodi:docname="icon.svg"
-   inkscape:export-filename="icon-1024x1024.png"
-   inkscape:export-xdpi="1300.48"
-   inkscape:export-ydpi="1300.48"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg"><sodipodi:namedview
-     id="namedview1"
-     pagecolor="#ffffff"
-     bordercolor="#000000"
-     borderopacity="0.25"
-     inkscape:showpageshadow="2"
-     inkscape:pageopacity="0.0"
-     inkscape:pagecheckerboard="0"
-     inkscape:deskcolor="#d1d1d1"
-     inkscape:document-units="mm"
-     inkscape:zoom="7.9507292"
-     inkscape:cx="-38.549923"
-     inkscape:cy="49.052105"
-     inkscape:window-width="2560"
-     inkscape:window-height="1387"
-     inkscape:window-x="0"
-     inkscape:window-y="25"
-     inkscape:window-maximized="1"
-     inkscape:current-layer="layer1" /><defs
-     id="defs1" /><rect
-     style="fill:#454545;fill-opacity:1;stroke:none;stroke-width:0.777021;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-     id="rect4"
-     width="20"
-     height="20"
-     x="0"
-     y="2.7755576e-17"
-     ry="0" /><g
-     inkscape:label="Layer 1"
-     inkscape:groupmode="layer"
-     id="layer1"><path
-       style="fill:#000000;fill-opacity:1;stroke:#ffffff;stroke-width:0.9;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-       d="M 7.8833333,9.4344917 V 12.09125"
-       id="path1" /><path
-       style="fill:#000000;fill-opacity:1;stroke:#ffffff;stroke-width:0.9;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-       d="M 12.116668,9.4344917 V 12.09125"
-       id="path10"
-       inkscape:label="path10" /><path
-       id="rect1"
-       style="stroke:#ffffff;stroke-width:0.9;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
-       d="M 4.2839476,2.2247577 H 15.716053 c 0.906894,0 1.874192,0.7616682 1.636991,1.6369917 L 16.138589,8.3433485 C 15.901387,9.2186703 15.408492,9.9803387 14.501598,9.9803387 H 5.498403 c -0.9068933,0 -1.3997903,-0.7616684 -1.6369916,-1.6369902 L 2.6469559,3.8617493 C 2.4097546,2.9864259 3.3770542,2.2247577 4.2839476,2.2247577 Z"
-       sodipodi:nodetypes="sssssssss" /><rect
-       style="fill:#000000;fill-opacity:1;stroke:#ffffff;stroke-width:0.9;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-       id="rect2"
-       width="13.259254"
-       height="5.148427"
-       x="3.3703732"
-       y="12.626815"
-       ry="1.3273069" /><path
-       style="fill:#000000;fill-opacity:1;stroke:#4d67d6;stroke-width:0.9;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-       d="M 5.6525799,3.8526192 H 14.34742"
-       id="path2" /><rect
-       style="fill:#454545;fill-opacity:1;stroke:#ffffff;stroke-width:0.6;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-       id="rect8"
-       width="5.5977955"
-       height="2.6258709"
-       x="9.0268259"
-       y="13.828004" /><path
-       sodipodi:type="star"
-       style="fill:#000000;fill-opacity:1;stroke:#ffffff;stroke-width:0.527359;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-       id="path9"
-       inkscape:flatsided="true"
-       sodipodi:sides="3"
-       sodipodi:cx="6.8988948"
-       sodipodi:cy="13.680859"
-       sodipodi:r1="1.336285"
-       sodipodi:r2="0.6681425"
-       sodipodi:arg1="0"
-       sodipodi:arg2="1.0471976"
-       inkscape:rounded="0"
-       inkscape:randomized="0"
-       d="m 8.2351798,13.680859 -2.0044275,1.157256 0,-2.314513 z"
-       inkscape:transform-center-x="-0.38008754"
-       transform="matrix(1.1377446,0,0,1.1377446,-1.7136251,-0.30791068)" /><path
-       style="fill:#000000;fill-opacity:1;stroke:#4d67d6;stroke-width:0.9;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-       d="M 12.041563,5.969286 H 15.14117"
-       id="path13"
-       sodipodi:nodetypes="cc" /><path
-       style="fill:#000000;fill-opacity:1;stroke:#4d67d6;stroke-width:0.9;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-       d="M 5.6525799,8.0859528 H 9.5849201"
-       id="path15"
-       sodipodi:nodetypes="cc" /><path
-       style="fill:#000000;fill-opacity:1;stroke:#4d67d6;stroke-width:0.9;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-       d="M 4.8588298,5.969286 H 10.472666"
-       id="path19"
-       sodipodi:nodetypes="cc" /><path
-       style="fill:#000000;fill-opacity:1;stroke:#4d67d6;stroke-width:0.9;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-       d="m 12.00258,8.0859528 h 2.344842"
-       id="path22"
-       sodipodi:nodetypes="cc" /></g></svg>
+  <!-- Canvas Background -->
+  <rect width="1024" height="1024"  fill="url(#bgGrad)"/>
+
+  <!-- Prompter Glow -->
+  <rect x="180" y="160" width="664" height="600" rx="60" fill="#1FB6B6" opacity="0.10" filter="url(#softGlow)"/>
+
+  <!-- Prompter Screen Glass -->
+  <rect x="188" y="168" width="648" height="584" rx="52" fill="url(#screenFill)" stroke="url(#tealBorder)" stroke-width="16"/>
+
+  <!-- Camera Module at Top Center -->
+  <rect x="448" y="172" width="128" height="36" rx="18" fill="#06121a" stroke="#1FB6B6" stroke-width="4" opacity="0.8"/>
+  <circle cx="512" cy="190" r="10" fill="#0d2636" stroke="#42F5E8" stroke-width="3"/>
+  <circle cx="512" cy="190" r="4" fill="#42F5E8"/>
+  <!-- Recording Status Dot -->
+  <circle cx="780" cy="204" r="8" fill="#FF4066" filter="url(#glow)"/>
+
+  <!-- Script Line 1 (Header/Title) -->
+  <line x1="256" y1="290" x2="440" y2="290" stroke="#1FB6B6" stroke-width="20" stroke-linecap="round" opacity="0.55"/>
+  <line x1="476" y1="290" x2="768" y2="290" stroke="#1FB6B6" stroke-width="20" stroke-linecap="round" opacity="0.35"/>
+
+  <!-- Script Line 2 (Pre-reading Line) -->
+  <line x1="256" y1="375" x2="560" y2="375" stroke="#1FB6B6" stroke-width="20" stroke-linecap="round" opacity="0.6"/>
+  <line x1="596" y1="375" x2="720" y2="375" stroke="#1FB6B6" stroke-width="20" stroke-linecap="round" opacity="0.4"/>
+
+  <!-- Script Line 3 (Active Reading Line + Voice Soundwave) -->
+  <!-- Ambient glow behind wave -->
+  <path d="M 256 470 L 390 470 C 420 470, 435 380, 460 380 C 485 380, 500 550, 525 550 C 550 550, 565 395, 590 395 C 615 395, 630 520, 655 520 C 675 520, 685 470, 705 470 L 768 470"
+        fill="none" stroke="#1FB6B6" stroke-width="44" stroke-linecap="round" stroke-linejoin="round" opacity="0.35" filter="url(#glow)"/>
+
+  <!-- Sharp luminous reading line and audio wave -->
+  <path d="M 256 470 L 390 470 C 420 470, 435 380, 460 380 C 485 380, 500 550, 525 550 C 550 550, 565 395, 590 395 C 615 395, 630 520, 655 520 C 675 520, 685 470, 705 470 L 768 470"
+        fill="none" stroke="url(#voiceGrad)" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Script Line 4 (Following Text) -->
+  <line x1="256" y1="570" x2="520" y2="570" stroke="#1FB6B6" stroke-width="20" stroke-linecap="round" opacity="0.6"/>
+  <line x1="556" y1="570" x2="748" y2="570" stroke="#1FB6B6" stroke-width="20" stroke-linecap="round" opacity="0.4"/>
+
+  <!-- Script Line 5 (Lower Script Text) -->
+  <line x1="256" y1="655" x2="460" y2="655" stroke="#1FB6B6" stroke-width="20" stroke-linecap="round" opacity="0.4"/>
+  <line x1="496" y1="655" x2="660" y2="655" stroke="#1FB6B6" stroke-width="20" stroke-linecap="round" opacity="0.25"/>
+
+  <!-- Glass Highlight Accent -->
+  <path d="M 210 190 L 380 190 L 210 360 Z" fill="#ffffff" opacity="0.04"/>
+
+  <!-- Prompter Modern Stand Base -->
+  <path d="M 428 752 L 596 752 L 626 800 L 398 800 Z" fill="#0a1d29" stroke="#1FB6B6" stroke-width="8" opacity="0.9"/>
+  <rect x="360" y="800" width="304" height="20" rx="10" fill="#1FB6B6" opacity="0.85"/>
+  <rect x="390" y="804" width="244" height="8" rx="4" fill="#42F5E8" opacity="0.6"/>
+</svg>

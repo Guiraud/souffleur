@@ -3,11 +3,11 @@ import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:tiefprompt/ui/widgets/safe_scaffold.dart';
+import 'package:souffleur/ui/widgets/safe_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:tiefprompt/providers/script_provider.dart';
-import 'package:tiefprompt/services/script_service.dart';
+import 'package:souffleur/providers/script_provider.dart';
+import 'package:souffleur/services/script_service.dart';
 
 class OpenFileScreen extends ConsumerWidget {
   const OpenFileScreen({super.key});

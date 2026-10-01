@@ -1,5 +1,5 @@
 import 'package:drift/drift.dart';
-import 'package:tiefprompt/models/keybinding.dart';
+import 'package:souffleur/models/keybinding.dart';
 
 class SettingsPresetModel extends Table {
   IntColumn get id => integer().autoIncrement()();

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:camera/camera.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tiefprompt/services/gallery_saver.dart';
+import 'package:souffleur/services/gallery_saver.dart';
 
 enum CameraPreviewMode {
   background, // Fullscreen behind prompter text

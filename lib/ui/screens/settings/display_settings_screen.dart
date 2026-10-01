@@ -1,12 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:tiefprompt/ui/widgets/safe_scaffold.dart';
+import 'package:souffleur/ui/widgets/safe_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tiefprompt/core/constants.dart';
-import 'package:tiefprompt/core/control_buttons.dart';
-import 'package:tiefprompt/providers/settings_provider.dart';
-import 'package:tiefprompt/ui/widgets/app_settings.dart';
-import 'package:tiefprompt/ui/widgets/async_settings_builder.dart';
+import 'package:souffleur/core/constants.dart';
+import 'package:souffleur/core/control_buttons.dart';
+import 'package:souffleur/providers/settings_provider.dart';
+import 'package:souffleur/ui/widgets/app_settings.dart';
+import 'package:souffleur/ui/widgets/async_settings_builder.dart';
 
 class DisplaySettingsScreen extends ConsumerWidget {
   const DisplaySettingsScreen({super.key});

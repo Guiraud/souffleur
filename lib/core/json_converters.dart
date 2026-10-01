@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:tiefprompt/core/control_buttons.dart';
+import 'package:souffleur/core/control_buttons.dart';
 
 class EnumByNameConverter<T extends Enum> implements JsonConverter<T, String> {
   final List<T> values;

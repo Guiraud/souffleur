@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:tiefprompt/core/constants.dart';
-import 'package:tiefprompt/core/control_buttons.dart';
-import 'package:tiefprompt/core/json_converters.dart';
-import 'package:tiefprompt/providers/prompter_config.dart';
-import 'package:tiefprompt/providers/prompter_provider.dart';
+import 'package:souffleur/core/constants.dart';
+import 'package:souffleur/core/control_buttons.dart';
+import 'package:souffleur/core/json_converters.dart';
+import 'package:souffleur/providers/prompter_config.dart';
+import 'package:souffleur/providers/prompter_provider.dart';
 
 part 'settings_provider.freezed.dart';
 part 'settings_provider.g.dart';

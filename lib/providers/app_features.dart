@@ -1,5 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:tiefprompt/core/constants.dart';
+import 'package:souffleur/core/constants.dart';
 
 part 'app_features.freezed.dart';
 

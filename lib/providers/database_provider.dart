@@ -1,6 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:tiefprompt/models/database.dart';
-import 'package:tiefprompt/models/database.drift.dart';
+import 'package:souffleur/models/database.dart';
+import 'package:souffleur/models/database.drift.dart';
 
 part 'database_provider.g.dart';
 

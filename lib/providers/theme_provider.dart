@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:tiefprompt/core/constants.dart';
-import 'package:tiefprompt/providers/settings_provider.dart';
+import 'package:souffleur/core/constants.dart';
+import 'package:souffleur/providers/settings_provider.dart';
 
 part 'theme_provider.freezed.dart';
 part 'theme_provider.g.dart';

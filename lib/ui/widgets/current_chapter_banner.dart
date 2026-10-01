@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tiefprompt/providers/current_chapter_provider.dart';
-import 'package:tiefprompt/providers/prompter_provider.dart';
+import 'package:souffleur/providers/current_chapter_provider.dart';
+import 'package:souffleur/providers/prompter_provider.dart';
 
 class CurrentChapterBanner extends ConsumerWidget {
   final EdgeInsets? offset;

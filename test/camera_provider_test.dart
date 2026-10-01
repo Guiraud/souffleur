@@ -1,7 +1,7 @@
 import 'package:camera/camera.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tiefprompt/providers/camera_provider.dart';
+import 'package:souffleur/providers/camera_provider.dart';
 
 void main() {
   group('CameraProvider tests', () {

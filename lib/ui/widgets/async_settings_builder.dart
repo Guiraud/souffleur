@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:tiefprompt/core/constants.dart';
-import 'package:tiefprompt/providers/settings_provider.dart';
-import 'package:tiefprompt/ui/screens/reset_settings_screen.dart';
-import 'package:tiefprompt/ui/widgets/safe_scaffold.dart';
+import 'package:souffleur/core/constants.dart';
+import 'package:souffleur/providers/settings_provider.dart';
+import 'package:souffleur/ui/screens/reset_settings_screen.dart';
+import 'package:souffleur/ui/widgets/safe_scaffold.dart';
 
 class AsyncSettingsBuilder<T> extends ConsumerWidget {
   final AsyncValue<T> state;

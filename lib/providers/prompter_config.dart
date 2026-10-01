@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:tiefprompt/core/constants.dart';
-import 'package:tiefprompt/core/control_buttons.dart';
-import 'package:tiefprompt/core/json_converters.dart';
+import 'package:souffleur/core/constants.dart';
+import 'package:souffleur/core/control_buttons.dart';
+import 'package:souffleur/core/json_converters.dart';
 
 part 'prompter_config.freezed.dart';
 part 'prompter_config.g.dart';

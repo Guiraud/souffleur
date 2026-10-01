@@ -1,11 +1,11 @@
 import 'dart:convert';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:tiefprompt/models/settings_preset_model.drift.dart';
-import 'package:tiefprompt/providers/database_provider.dart';
-import 'package:tiefprompt/providers/keybinding_provider.dart';
-import 'package:tiefprompt/providers/settings_provider.dart';
-import 'package:tiefprompt/providers/talker_provider.dart';
+import 'package:souffleur/models/settings_preset_model.drift.dart';
+import 'package:souffleur/providers/database_provider.dart';
+import 'package:souffleur/providers/keybinding_provider.dart';
+import 'package:souffleur/providers/settings_provider.dart';
+import 'package:souffleur/providers/talker_provider.dart';
 
 part 'settings_storage_service.g.dart';
 

@@ -5,9 +5,9 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tief_weave/markdown.dart';
-import 'package:tiefprompt/providers/current_chapter_provider.dart';
-import 'package:tiefprompt/providers/prompter_provider.dart';
-import 'package:tiefprompt/providers/voice_scroll_provider.dart';
+import 'package:souffleur/providers/current_chapter_provider.dart';
+import 'package:souffleur/providers/prompter_provider.dart';
+import 'package:souffleur/providers/voice_scroll_provider.dart';
 
 class _UserScrolling extends Notifier<bool> {
   @override

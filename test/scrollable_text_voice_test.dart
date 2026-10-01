@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tiefprompt/providers/voice_scroll_provider.dart';
-import 'package:tiefprompt/ui/widgets/scrollable_text.dart';
+import 'package:souffleur/providers/voice_scroll_provider.dart';
+import 'package:souffleur/ui/widgets/scrollable_text.dart';
 
 /// Voice tracking already running (and the speaker halfway through the text)
 /// before [ScrollableText] is mounted — e.g. the widget was recreated because

@@ -1,12 +1,12 @@
 import 'package:drift/drift.dart' hide Column;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:tiefprompt/core/utilities.dart';
-import 'package:tiefprompt/ui/widgets/safe_scaffold.dart';
+import 'package:souffleur/core/utilities.dart';
+import 'package:souffleur/ui/widgets/safe_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:tiefprompt/core/constants.dart';
-import 'package:tiefprompt/providers/database_provider.dart';
+import 'package:souffleur/core/constants.dart';
+import 'package:souffleur/providers/database_provider.dart';
 
 class HelpRequestScreen extends ConsumerWidget {
   const HelpRequestScreen({super.key});

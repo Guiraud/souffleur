@@ -1,9 +1,9 @@
 // dart format width=80
 // ignore_for_file: type=lint
 import 'package:drift/drift.dart' as i0;
-import 'package:tiefprompt/models/settings_preset_model.drift.dart' as i1;
-import 'package:tiefprompt/models/settings_preset_model.dart' as i2;
-import 'package:tiefprompt/models/keybinding.drift.dart' as i3;
+import 'package:souffleur/models/settings_preset_model.drift.dart' as i1;
+import 'package:souffleur/models/settings_preset_model.dart' as i2;
+import 'package:souffleur/models/keybinding.drift.dart' as i3;
 import 'package:drift/internal/modular.dart' as i4;
 
 typedef $$SettingsPresetModelTableCreateCompanionBuilder =

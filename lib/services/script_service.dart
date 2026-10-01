@@ -1,10 +1,10 @@
 import 'package:drift/drift.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:tiefprompt/core/constants.dart';
-import 'package:tiefprompt/models/script_model.drift.dart';
-import 'package:tiefprompt/providers/database_provider.dart';
-import 'package:tiefprompt/providers/script_provider.dart';
-import 'package:tiefprompt/providers/talker_provider.dart';
+import 'package:souffleur/core/constants.dart';
+import 'package:souffleur/models/script_model.drift.dart';
+import 'package:souffleur/providers/database_provider.dart';
+import 'package:souffleur/providers/script_provider.dart';
+import 'package:souffleur/providers/talker_provider.dart';
 
 part 'script_service.g.dart';
 

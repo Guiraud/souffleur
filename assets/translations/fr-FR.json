@@ -2,7 +2,7 @@
   "title": "Souffleur",
   "empty_title": "Texte sans titre",
   "copyright": "Copyright © 2025 Lena Tauchner\nTous droits réservés.\n\nCe projet est sous licence MIT.\n",
-  "credits": "Merci aux contributeurs pour les traductions.",
+  "credits": "Merci aux contributeurs suivants pour les traductions du logiciel :\n- Chinois : @TaoEngine\n- Russe : @Xapitonov\n- Arabe : @shadigaafar",
   "ProFeatureDisabled": "Cette fonctionnalité est disponible dans la version pro.",
   "AboutDialog": {
     "Text_PrivacyText": "Cette application ne collecte aucune donnée personnelle. Aucune donnée n'est partagée avec des tiers.",
@@ -242,8 +242,8 @@
   },
   "HelpRequestScreen": {
     "Title": "Aidez-nous !",
-    "Abstract": "TiefPrompt est un projet communautaire open-source.",
-    "ElaborateExplanation": "TiefPrompt est une application de téléprompteur libre sans publicités ni pistage.",
+    "Abstract": "Souffleur est un projet open-source basé sur TiefPrompt.",
+    "ElaborateExplanation": "Souffleur est une application de téléprompteur libre sans publicités ni pistage.",
     "ReadMore": "En savoir plus",
     "Continue": "Continuer vers l'application"
   },

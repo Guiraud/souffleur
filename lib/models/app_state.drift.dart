@@ -1,8 +1,8 @@
 // dart format width=80
 // ignore_for_file: type=lint
 import 'package:drift/drift.dart' as i0;
-import 'package:tiefprompt/models/app_state.drift.dart' as i1;
-import 'package:tiefprompt/models/app_state.dart' as i2;
+import 'package:souffleur/models/app_state.drift.dart' as i1;
+import 'package:souffleur/models/app_state.dart' as i2;
 
 typedef $$AppStateModelTableCreateCompanionBuilder =
     i1.AppStateModelCompanion Function({

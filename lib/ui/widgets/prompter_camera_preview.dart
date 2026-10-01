@@ -1,7 +1,7 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tiefprompt/providers/camera_provider.dart';
+import 'package:souffleur/providers/camera_provider.dart';
 
 class PrompterCameraBackgroundPreview extends ConsumerWidget {
   const PrompterCameraBackgroundPreview({super.key});

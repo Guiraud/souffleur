@@ -1,7 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tiefprompt/providers/voice_scroll_provider.dart';
+import 'package:souffleur/providers/voice_scroll_provider.dart';
 
 class VoiceScrollBanner extends ConsumerWidget {
   const VoiceScrollBanner({super.key});

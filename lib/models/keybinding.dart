@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart' hide JsonKey;
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:tiefprompt/models/keybinding.drift.dart';
+import 'package:souffleur/models/keybinding.drift.dart';
 
 part 'keybinding.freezed.dart';
 part 'keybinding.g.dart';

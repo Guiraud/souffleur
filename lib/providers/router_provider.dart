@@ -1,19 +1,19 @@
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:tiefprompt/core/disabled_feature_screen_state.dart';
-import 'package:tiefprompt/providers/feature_provider.dart';
-import 'package:tiefprompt/providers/theme_provider.dart';
-import 'package:tiefprompt/ui/screens/help_request_screen.dart';
-import 'package:tiefprompt/ui/screens/home_screen.dart';
-import 'package:tiefprompt/ui/screens/open_file_screen.dart';
-import 'package:tiefprompt/ui/screens/prompter_screen.dart';
-import 'package:tiefprompt/ui/screens/log_viewer_screen.dart';
-import 'package:tiefprompt/ui/screens/settings/display_settings_screen.dart';
-import 'package:tiefprompt/ui/screens/settings/keybindings_settings_screen.dart';
-import 'package:tiefprompt/ui/screens/settings/settings_restore_screen.dart';
-import 'package:tiefprompt/ui/screens/settings/settings_screen.dart';
-import 'package:tiefprompt/ui/screens/settings/text_settings_screen.dart';
-import 'package:tiefprompt/ui/widgets/prompter_theme_scope.dart';
+import 'package:souffleur/core/disabled_feature_screen_state.dart';
+import 'package:souffleur/providers/feature_provider.dart';
+import 'package:souffleur/providers/theme_provider.dart';
+import 'package:souffleur/ui/screens/help_request_screen.dart';
+import 'package:souffleur/ui/screens/home_screen.dart';
+import 'package:souffleur/ui/screens/open_file_screen.dart';
+import 'package:souffleur/ui/screens/prompter_screen.dart';
+import 'package:souffleur/ui/screens/log_viewer_screen.dart';
+import 'package:souffleur/ui/screens/settings/display_settings_screen.dart';
+import 'package:souffleur/ui/screens/settings/keybindings_settings_screen.dart';
+import 'package:souffleur/ui/screens/settings/settings_restore_screen.dart';
+import 'package:souffleur/ui/screens/settings/settings_screen.dart';
+import 'package:souffleur/ui/screens/settings/text_settings_screen.dart';
+import 'package:souffleur/ui/widgets/prompter_theme_scope.dart';
 
 part 'router_provider.g.dart';
 

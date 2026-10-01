@@ -1,9 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tiefprompt/providers/camera_provider.dart';
-import 'package:tiefprompt/ui/screens/prompter_screen.dart';
-import 'package:tiefprompt/ui/widgets/recorded_video_dialog.dart';
+import 'package:souffleur/providers/camera_provider.dart';
+import 'package:souffleur/ui/screens/prompter_screen.dart';
+import 'package:souffleur/ui/widgets/recorded_video_dialog.dart';
 
 Future<void> handleCameraRecording(BuildContext context, WidgetRef ref) async {
   final cameraState = ref.read(cameraProvider);

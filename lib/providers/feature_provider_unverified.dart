@@ -1,11 +1,11 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/widgets.dart';
-import 'package:tiefprompt/core/constants.dart';
-import 'package:tiefprompt/core/disabled_feature_screen_state.dart';
-import 'package:tiefprompt/providers/app_features.dart';
-import 'package:tiefprompt/providers/feature_provider.dart';
-import 'package:tiefprompt/ui/screens/no_purchase_available_screen.dart';
-import 'package:tiefprompt/ui/widgets/feature_version_popup_content.dart';
+import 'package:souffleur/core/constants.dart';
+import 'package:souffleur/core/disabled_feature_screen_state.dart';
+import 'package:souffleur/providers/app_features.dart';
+import 'package:souffleur/providers/feature_provider.dart';
+import 'package:souffleur/ui/screens/no_purchase_available_screen.dart';
+import 'package:souffleur/ui/widgets/feature_version_popup_content.dart';
 
 class FeaturesUnverified extends Features {
   @override

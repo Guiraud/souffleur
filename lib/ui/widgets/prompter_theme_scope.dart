@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tiefprompt/providers/theme_provider.dart';
+import 'package:souffleur/providers/theme_provider.dart';
 
 class PrompterThemeScope extends ConsumerWidget {
   final Widget child;

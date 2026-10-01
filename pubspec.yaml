@@ -1,5 +1,5 @@
-name: tiefprompt
-description: "The most simple teleprompter."
+name: souffleur
+description: "Souffleur - Un téléprompteur simple et multiplateforme."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
@@ -93,8 +93,8 @@ flutter_launcher_icons:
 
 msix_config:
   display_name: Souffleur
-  publisher_display_name: Tiefseetauchner
-  identity_name: io.github.tiefseetauchner.tiefprompt
+  publisher_display_name: Guiraud
+  identity_name: fr.guiraud.souffleur
   msix_version: 1.0.0.0
   logo_path: assets/images/icon_bg_round.png
 

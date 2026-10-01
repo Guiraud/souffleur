@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:tiefprompt/core/disabled_feature_screen_state.dart';
-import 'package:tiefprompt/providers/app_features.dart';
+import 'package:souffleur/core/disabled_feature_screen_state.dart';
+import 'package:souffleur/providers/app_features.dart';
 
 part 'feature_provider.g.dart';
 

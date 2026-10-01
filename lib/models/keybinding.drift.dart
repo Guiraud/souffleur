@@ -1,8 +1,8 @@
 // dart format width=80
 // ignore_for_file: type=lint
 import 'package:drift/drift.dart' as i0;
-import 'package:tiefprompt/models/keybinding.drift.dart' as i1;
-import 'package:tiefprompt/models/keybinding.dart' as i2;
+import 'package:souffleur/models/keybinding.drift.dart' as i1;
+import 'package:souffleur/models/keybinding.dart' as i2;
 import 'package:drift/internal/modular.dart' as i3;
 
 typedef $$KeybindingMappingModelTableCreateCompanionBuilder =

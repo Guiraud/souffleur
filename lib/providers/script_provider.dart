@@ -1,6 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:tiefprompt/models/script_model.drift.dart';
+import 'package:souffleur/models/script_model.drift.dart';
 
 part 'script_provider.freezed.dart';
 part 'script_provider.g.dart';

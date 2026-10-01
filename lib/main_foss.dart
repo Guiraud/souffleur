@@ -3,12 +3,12 @@ import 'package:easy_localization/easy_localization.dart' as el;
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:talker_riverpod_logger/talker_riverpod_logger.dart';
-import 'package:tiefprompt/core/app_bootstrap.dart';
-import 'package:tiefprompt/core/constants.dart';
-import 'package:tiefprompt/providers/feature_provider.dart';
-import 'package:tiefprompt/providers/feature_provider_foss.dart';
-import 'package:tiefprompt/providers/talker_provider.dart';
-import 'package:tiefprompt/teleprompter_app.dart';
+import 'package:souffleur/core/app_bootstrap.dart';
+import 'package:souffleur/core/constants.dart';
+import 'package:souffleur/providers/feature_provider.dart';
+import 'package:souffleur/providers/feature_provider_foss.dart';
+import 'package:souffleur/providers/talker_provider.dart';
+import 'package:souffleur/teleprompter_app.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
